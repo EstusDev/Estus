@@ -1,0 +1,8 @@
+# Intellij project files
+*.xml
+*.iml
+*.ipr
+*.iws
+*.idea/
+*target/
+*project/
