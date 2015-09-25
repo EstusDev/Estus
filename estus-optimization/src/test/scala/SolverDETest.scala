@@ -4,7 +4,7 @@ import org.scalatest.{FlatSpec, Matchers}
 
 
 
-class SolverDiffEvoTest extends FlatSpec with Matchers {
+class SolverDETest extends FlatSpec with Matchers {
 
   import akka.actor.{ActorSystem, Props}
   import akka.routing.RoundRobinPool
@@ -37,7 +37,7 @@ class SolverDiffEvoTest extends FlatSpec with Matchers {
       val request = BenchmarkFunctions(D, configNew).ackleyRequest
       val key = journal.registerRow(request)
       system.actorOf(
-        Props(new SolverDiffEvo(
+        Props(new SolverDE(
           key,
           request,
           workerRouter,
@@ -69,7 +69,7 @@ class SolverDiffEvoTest extends FlatSpec with Matchers {
       val request = BenchmarkFunctions(D, configNew).rastriginRequest
       val key = journal.registerRow(request)
       system.actorOf(
-        Props(new SolverDiffEvo(
+        Props(new SolverDE(
           key,
           request,
           workerRouter,
@@ -100,7 +100,7 @@ class SolverDiffEvoTest extends FlatSpec with Matchers {
       val request = BenchmarkFunctions(D, config).schwefelRequest
       val key = journal.registerRow(request)
       system.actorOf(
-        Props(new SolverDiffEvo(
+        Props(new SolverDE(
           key,
           request,
           workerRouter,
@@ -131,7 +131,7 @@ class SolverDiffEvoTest extends FlatSpec with Matchers {
       val request = BenchmarkFunctions(D, config).sphereRequest
       val key = journal.registerRow(request)
       system.actorOf(
-        Props(new SolverDiffEvo(
+        Props(new SolverDE(
           key,
           request,
           workerRouter,
@@ -162,7 +162,7 @@ class SolverDiffEvoTest extends FlatSpec with Matchers {
       val request = BenchmarkFunctions(D, config).ellipsoidRequest
       val key = journal.registerRow(request)
       system.actorOf(
-        Props(new SolverDiffEvo(
+        Props(new SolverDE(
           key,
           request,
           workerRouter,
@@ -193,7 +193,7 @@ class SolverDiffEvoTest extends FlatSpec with Matchers {
       val request = BenchmarkFunctions(D, config).zakharovRequest
       val key = journal.registerRow(request)
       system.actorOf(
-        Props(new SolverDiffEvo(
+        Props(new SolverDE(
           key,
           request,
           workerRouter,
@@ -224,7 +224,7 @@ class SolverDiffEvoTest extends FlatSpec with Matchers {
       val request = BenchmarkFunctions(D, config).rosenbrockRequest
       val key = journal.registerRow(request)
       system.actorOf(
-        Props(new SolverDiffEvo(
+        Props(new SolverDE(
           key,
           request,
           workerRouter,
@@ -254,7 +254,7 @@ class SolverDiffEvoTest extends FlatSpec with Matchers {
     val request = BenchmarkFunctions(2, config).debRequest
     val key = journal.registerRow(request)
     system.actorOf(
-      Props(new SolverDiffEvo(
+      Props(new SolverDE(
         key,
         request,
         workerRouter,

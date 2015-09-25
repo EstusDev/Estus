@@ -9,22 +9,8 @@ import com.estus.optimization.MessageProtocol._
 import org.apache.commons.math3.distribution.CauchyDistribution
 
 
-/*** FSM - States ***/
-sealed trait State
-case object InitiationState extends State
-case object EvolutionState extends State
 
-/*** FSM - Data ***/
-final case class Data()
-
-/*** Key of the Evaluation Stack ***/
-trait StackKey[T] {
-  type KeyType = T
-}
-
-
-
-class SolverDiffEvo (
+class SolverDE (
     key: String,
     request: Request,
     workerRouter: ActorRef,
@@ -40,7 +26,7 @@ class SolverDiffEvo (
 
   private val pop = Population(config.NP)
   private val popExplore = Population(config.NP)
-  private val evalStack = EvalStack()
+  private val evalStack = EvalStack[KeyType]()
   private var evalMap = collection.immutable.Map.empty[KeyType, PopulationNode]
   private val trace = Trace()
 
@@ -135,11 +121,11 @@ class SolverDiffEvo (
           bestNode = x._1
         pop.add(x._1)
       })
-      goto(EvolutionState)
+      goto(EvolutionDEState)
 
   }
 
-  when (EvolutionState) {
+  when (EvolutionDEState) {
 
     case Event(Evolve, _) if popExplore.size < config.NP && flagExplore =>
       // Use Nelder-Mead method to explore population space
@@ -378,7 +364,7 @@ class SolverDiffEvo (
             else
               popExplore.replaceWorst(node, config.constStrategy)
           }
-        case EvolutionState =>
+        case EvolutionDEState =>
           if (keyStack._1) { // pop: evolving phrase
             keyStack._2 match {
               case Some(i) =>
@@ -412,7 +398,7 @@ class SolverDiffEvo (
   }
 
   onTransition {
-    case InitiationState -> EvolutionState =>
+    case InitiationState -> EvolutionDEState =>
       self ! Evolve
   }
 
@@ -437,171 +423,6 @@ class SolverDiffEvo (
       if (config.logTrace)
         log.info(solution.toString)
       journal.updateRow(key, solution)
-  }
-
-}
-
-
-
-case class PopulationNode(param: List[Double], request: Request) {
-
-  var objFnVal: Option[Double] = None
-
-  val constVec: List[Double] = List(checkEqB, checkIneqLB, checkIneqUB).flatten
-
-  val constVal: Double = constVec.filter(_ > 0.0).sum
-
-  var F: Option[Double] = None
-
-  var Cr: Option[Double] = None
-
-  var rho: Option[Double] = None
-
-  private def checkEqB: List[Double] = (request.eqB, request.eqErr, request.eqFunc) match {
-    case (Some(b), Some(e), Some(f)) => f(param).zip(b).map(x => abs(x._1 - x._2) - e)
-    case _ => List(0.0)
-  }
-
-  private def checkIneqLB: List[Double] = (request.ineqLB, request.ineqFunc) match {
-    case (Some(lb), Some(f)) => f(param).zip(lb).map(x => {x._2 - x._1})
-    case _ => List(0.0)
-  }
-
-  private def checkIneqUB: List[Double] = (request.ineqUB, request.ineqFunc) match {
-    case (Some(ub), Some(f)) => f(param).zip(ub).map(x => x._1 - x._2)
-    case _ => List(0.0)
-  }
-
-}
-
-
-
-case class Population (NP: Int) {
-
-  var p = collection.immutable.Map.empty[String, PopulationNode]
-
-  var keys = List.empty[String]
-
-  def size: Int = p.size
-
-  def get (i: Int): Option[PopulationNode] = p.get(keys(i))
-
-  def add (node: PopulationNode): Unit = {
-    if (p.size < NP) {
-      val uuid = java.util.UUID.randomUUID.toString
-      p = p + (uuid -> node)
-      keys = uuid :: keys
-    }
-  }
-
-  def update (key: Int, node: PopulationNode): Unit = {
-    if (key < p.size)
-      p = (p - keys(key)) + (keys(key) -> node)
-  }
-
-  def replaceWorst (node: PopulationNode, constStrategy: String): Unit = {
-    val wfv = worstFeasibleVal.getOrElse(0.0)
-    val keyWfv = p.maxBy(node => node._2.objFnVal match {
-      case Some (v) => v
-      case _ => node._2.constVal + wfv
-    })._1
-    val nodeSelected = selectBetterNode(p.get(keyWfv).get, node, constStrategy)
-    p = (p - keyWfv) + (keyWfv -> nodeSelected)
-  }
-
-  def empty: Unit = {
-    p = collection.immutable.Map.empty[String, PopulationNode]
-    keys = List.empty[String]
-  }
-
-  def merge (pNew: Population): Population = {
-    val popUnion = new Population(NP + pNew.NP)
-    popUnion.p = p ++ pNew.p
-    popUnion.keys = keys ++ pNew.keys
-    popUnion
-  }
-
-  def worstFeasibleVal: Option[Double] = p.values.maxBy(_.objFnVal).objFnVal
-
-  def selectBetterNode(
-    node1: PopulationNode,
-    node2: PopulationNode,
-    constStrategy: String): PopulationNode = (node1.objFnVal, node2.objFnVal) match {
-    case (Some(a), Some(b)) if a < b =>
-      node1
-    case (Some(_), None) =>
-      node1
-    case (None, None) =>
-      if (constStrategy == "rank") { // The lowest sum of constraint violation
-        if (node1.constVal <= node2.constVal)
-          node1
-        else
-          node2
-      } else { // Pareto-dominates
-        if (node1.constVec.map(max(_, 0.0)).
-          zip(node2.constVec.map(max(_, 0.0))).
-          exists(x => x._2 >= x._1))
-          node1
-        else
-          node2
-      }
-    case _ => node2
-  }
-
-}
-
-
-
-case class EvalStack () extends StackKey[(Boolean, Option[Int], String)] {
-
-  private var stack = List.empty[(KeyType, PopulationNode)]
-
-  def size: Int = stack.size
-
-  def push (
-    node: (KeyType, PopulationNode),
-    maxSize: Option[Int] = None): Unit = {
-    stack = node :: stack
-    maxSize match {
-      case Some(s) =>
-        stack = stack take s
-      case _ =>
-    }
-  }
-
-  def pop (): Option[(KeyType, PopulationNode)] = {
-    if (stack.nonEmpty) {
-      val v = stack.head
-      stack = stack.tail
-      Some(v)
-    } else {
-      None
-    }
-  }
-
-  def empty: Unit = stack = List.empty[(KeyType, PopulationNode)]
-
-}
-
-
-
-case class Trace () {
-
-  private var trace = List.empty[Double]
-
-  def size: Int = trace.size
-
-  def add (node: Double): Unit = trace = (node :: trace).sorted take 2
-
-  def contains (value: Double): Boolean = trace.contains(value)
-
-  def min: Double = trace.min
-
-  def converged(tolRel: Double): Option[Boolean] = {
-    if (trace.size == 2)
-      Some((trace.max - trace.min) < (tolRel * (abs(trace.max) + tolRel)))
-    else
-      None
   }
 
 }
