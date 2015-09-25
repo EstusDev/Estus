@@ -10,7 +10,7 @@ import org.apache.commons.math3.distribution.CauchyDistribution
 
 
 
-class SolverDiffEvo (
+class SolverDE (
     key: String,
     request: Request,
     workerRouter: ActorRef,
