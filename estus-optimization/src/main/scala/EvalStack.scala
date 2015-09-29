@@ -8,15 +8,15 @@ trait StackKey[T] {
 
 
 
-case class EvalStack [T] () {
+case class EvalStack [T, A] () {
 
-  private var stack = List.empty[(T, PopulationNode)]
+  private var stack = List.empty[(T, A)]
 
   def size: Int = stack.size
 
   def push (
-             node: (T, PopulationNode),
-             maxSize: Option[Int] = None): Unit = {
+    node: (T, A),
+    maxSize: Option[Int] = None): Unit = {
     stack = node :: stack
     maxSize match {
       case Some(s) =>
@@ -25,7 +25,7 @@ case class EvalStack [T] () {
     }
   }
 
-  def pop (): Option[(T, PopulationNode)] = {
+  def pop (): Option[(T, A)] = {
     if (stack.nonEmpty) {
       val v = stack.head
       stack = stack.tail
@@ -35,6 +35,6 @@ case class EvalStack [T] () {
     }
   }
 
-  def empty: Unit = stack = List.empty[(T, PopulationNode)]
+  def empty: Unit = stack = List.empty[(T, A)]
 
 }

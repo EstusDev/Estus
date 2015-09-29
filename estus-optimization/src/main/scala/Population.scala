@@ -18,6 +18,10 @@ case class PopulationNode(param: List[Double], request: Request) {
 
   var rho: Option[Double] = None
 
+  var improve: Option[Boolean] = None
+
+  var SR: Option[Double] = None
+
   private def checkEqB: List[Double] = (request.eqB, request.eqErr, request.eqFunc) match {
     case (Some(b), Some(e), Some(f)) => f(param).zip(b).map(x => abs(x._1 - x._2) - e)
     case _ => List(0.0)

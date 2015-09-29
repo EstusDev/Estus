@@ -19,6 +19,20 @@ object MessageProtocol {
       fn: (List[Double]) => Double)
     extends Message
 
+  /* <<< DENMLS1 Stuff >>> */
+
+  case class SearchLocal (
+      master: ActorRef,
+      slave: ActorRef,
+      best: PopulationNode,
+      d: Int,
+      request: Request)
+    extends Message
+
+  case class UpdateBestNode (best: PopulationNode, numEval: Int) extends Message
+
+  /* <<< DENMLS1 Stuff >>> */
+
   case class Result (key: Any, objVal: Double) extends Message
 
   case class Start () extends Message
