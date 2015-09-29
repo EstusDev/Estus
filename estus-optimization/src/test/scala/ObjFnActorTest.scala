@@ -1,5 +1,7 @@
 package com.estus.optimization
 
+import java.util.concurrent.TimeoutException
+
 import org.scalatest.{Matchers, FlatSpec}
 
 
@@ -15,6 +17,7 @@ class ObjFnActorTest extends FlatSpec with Matchers {
   val system = ActorSystem()
   val probe = new TestProbe(system)
   val actor = system.actorOf(Props[ObjFnActor])
+  val fdur = Duration(30, java.util.concurrent.TimeUnit.SECONDS)
 
   "A ObjFnActor" should
     "send back 'GimmeWork' after ! 'WorkAvailable'" in {
@@ -25,7 +28,7 @@ class ObjFnActorTest extends FlatSpec with Matchers {
   "A ObjFnActor" should
     "send back 'Result' and 'GimmeWork' after ! 'Work'" in {
     def fn(param: List[Double]): Double = param.sum
-    actor ! Work(probe.ref, "id", List(1.0, 2.0), fn)
+    actor ! Work(probe.ref, "id", List(1.0, 2.0), fn, fdur)
     probe.expectMsg(500 millis, Result("id", 3.0))
     probe.expectMsg(500 millis, GimmeWork)
   }
@@ -36,15 +39,26 @@ class ObjFnActorTest extends FlatSpec with Matchers {
       Thread.sleep(5000)
       param.sum
     }
-    actor ! Work(probe.ref, "id", List(1.0, 2.0), fn)
+    actor ! Work(probe.ref, "id", List(1.0, 2.0), fn, fdur)
     probe.expectNoMsg(500 millis)
   }
 
   "A ObjFnActor" should
-    "send back 'Failure' and 'GimmeWork' after ! 'Work', if ObjFn fails" in {
+    "send back 'Failure(Throwable)' and 'GimmeWork' " +
+      "after ! 'Work', if ObjFn fails" in {
     def fn(param: List[Double]): Double = 1/0
-    actor ! Work(probe.ref, "id", List(1.0, 2.0), fn)
+    actor ! Work(probe.ref, "id", List(1.0, 2.0), fn, fdur)
     probe.expectMsgClass(500 millis, Failure(new Throwable()).getClass)
+    probe.expectMsg(500 millis, GimmeWork)
+  }
+
+  "A ObjFnActor" should
+    "send back 'Failure(TimeoutException)' and 'GimmeWork' " +
+      "after ! 'Work', if ObjFn is timed out" in {
+    def fn(param: List[Double]): Double = {Thread.sleep(5000); 1.0}
+    val fdurShort = Duration(200, java.util.concurrent.TimeUnit.MILLISECONDS)
+    actor ! Work(probe.ref, "id", List(1.0, 2.0), fn, fdurShort)
+    probe.expectMsgClass(500 millis, Failure(new TimeoutException()).getClass)
     probe.expectMsg(500 millis, GimmeWork)
   }
 

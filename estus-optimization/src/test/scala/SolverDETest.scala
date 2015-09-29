@@ -2,6 +2,7 @@ package com.estus.optimization
 
 import org.scalatest.{FlatSpec, Matchers}
 
+import scala.concurrent.duration.Duration
 
 
 class SolverDETest extends FlatSpec with Matchers {
@@ -42,7 +43,7 @@ class SolverDETest extends FlatSpec with Matchers {
           request,
           workerRouter,
           journal,
-          Some(new FiniteDuration(3*D, java.util.concurrent.TimeUnit.SECONDS))
+          Duration(3*D, java.util.concurrent.TimeUnit.SECONDS)
         )),
         name = s"ackley-d$D") ! Start
       key
@@ -74,7 +75,7 @@ class SolverDETest extends FlatSpec with Matchers {
           request,
           workerRouter,
           journal,
-          Some(new FiniteDuration(3*D, java.util.concurrent.TimeUnit.SECONDS))
+          Duration(3*D, java.util.concurrent.TimeUnit.SECONDS)
         )),
         name = s"rastrigin-d$D") ! Start
       key
@@ -105,7 +106,7 @@ class SolverDETest extends FlatSpec with Matchers {
           request,
           workerRouter,
           journal,
-          Some(new FiniteDuration(3*D, java.util.concurrent.TimeUnit.SECONDS))
+          Duration(3*D, java.util.concurrent.TimeUnit.SECONDS)
         )),
         name = s"schwefel-d$D") ! Start
       key
@@ -136,7 +137,7 @@ class SolverDETest extends FlatSpec with Matchers {
           request,
           workerRouter,
           journal,
-          Some(new FiniteDuration(3*D, java.util.concurrent.TimeUnit.SECONDS))
+          Duration(3*D, java.util.concurrent.TimeUnit.SECONDS)
         )),
         name = s"sphere-d$D") ! Start
       key
@@ -167,7 +168,7 @@ class SolverDETest extends FlatSpec with Matchers {
           request,
           workerRouter,
           journal,
-          Some(new FiniteDuration(3*D, java.util.concurrent.TimeUnit.SECONDS))
+          Duration(3*D, java.util.concurrent.TimeUnit.SECONDS)
         )),
         name = s"ellipsoid-d$D") ! Start
       key
@@ -198,7 +199,7 @@ class SolverDETest extends FlatSpec with Matchers {
           request,
           workerRouter,
           journal,
-          Some(new FiniteDuration(3*D, java.util.concurrent.TimeUnit.SECONDS))
+          Duration(3*D, java.util.concurrent.TimeUnit.SECONDS)
         )),
         name = s"zakharov-d$D") ! Start
       key
@@ -229,7 +230,7 @@ class SolverDETest extends FlatSpec with Matchers {
           request,
           workerRouter,
           journal,
-          Some(new FiniteDuration(3*D, java.util.concurrent.TimeUnit.SECONDS))
+          Duration(3*D, java.util.concurrent.TimeUnit.SECONDS)
         )),
         name = s"rosenbrock-d$D") ! Start
       key
@@ -259,7 +260,7 @@ class SolverDETest extends FlatSpec with Matchers {
         request,
         workerRouter,
         journal,
-        Some(new FiniteDuration(2, java.util.concurrent.TimeUnit.SECONDS))
+        Duration(2, java.util.concurrent.TimeUnit.SECONDS)
       )),
       name = s"deb-d2") ! Start
     while (journal.retrieveRow(key).get.solution.isEmpty) {
