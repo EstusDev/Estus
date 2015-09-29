@@ -26,7 +26,7 @@ class SolverDE (
 
   private val pop = Population(config.NP)
   private val popExplore = Population(config.NP)
-  private val evalStack = EvalStack[KeyType]()
+  private val evalStack = EvalStack[KeyType, PopulationNode]()
   private var evalMap = collection.immutable.Map.empty[KeyType, PopulationNode]
   private val trace = Trace()
 
