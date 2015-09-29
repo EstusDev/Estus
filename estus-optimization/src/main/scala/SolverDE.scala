@@ -41,11 +41,6 @@ class SolverDE (
   when(InitiationState) {
 
     case Event(Start, _) =>
-/*      timeout match {
-        case Some(t) => // Set timeout
-          context.system.scheduler.scheduleOnce(t, self, Timeout)
-        case _ =>
-      }*/
       if (timeout.isFinite) {
         val fdur = FiniteDuration(
           timeout.toMillis,
