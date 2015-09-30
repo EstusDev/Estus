@@ -24,7 +24,8 @@ case class ObjFnActor() extends Actor with ActorLogging {
           to.toMillis,
           java.util.concurrent.TimeUnit.MILLISECONDS)
         lazy val t = after(duration = fdur, using = context.system.scheduler)(
-          Future.failed(new TimeoutException("ObjFn timed out!")))
+          Future.failed(
+            new TimeoutException(s"${Work(master, id, p, fn, to)} timed out!")))
         Future firstCompletedOf Seq(Future { fn(p) }, t)
       } else {
         Future { fn(p) }
