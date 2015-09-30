@@ -105,7 +105,7 @@ case class Population (NP: Int) {
       } else { // Pareto-dominates
         if (node1.constVec.map(max(_, 0.0)).
           zip(node2.constVec.map(max(_, 0.0))).
-          exists(x => x._2 >= x._1))
+          exists(x => x._2 > x._1))
           node1
         else
           node2
