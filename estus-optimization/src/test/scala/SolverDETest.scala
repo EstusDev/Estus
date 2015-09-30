@@ -16,7 +16,7 @@ class SolverDETest extends FlatSpec with Matchers {
   val system = ActorSystem()
   val workerRouter = system.actorOf(RoundRobinPool(ds.size).props(Props[ObjFnActor]))
   val journal = Journal()
-  val config = DiffEvoConfig(
+  val config = DEConfig(
     NP = 50,
     F = None,
     Cr = None,

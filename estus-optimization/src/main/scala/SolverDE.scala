@@ -23,7 +23,7 @@ class SolverDE (
     with StackKey[(Boolean, Option[Int], String)] {
 
   private val startTime = System.currentTimeMillis()
-  private val config = request.solverConfig.asInstanceOf[DiffEvoConfig]
+  private val config = request.solverConfig.asInstanceOf[DEConfig]
 
   private val pop = Population(config.NP)
   private val popExplore = Population(config.NP)
