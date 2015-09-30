@@ -16,17 +16,19 @@ class LS1ActorTest extends FlatSpec with Matchers {
   val actor = system.actorOf(Props[LS1Actor])
   val slave = system.actorOf(Props[ObjFnActor])
 
+
+
   "A LS1Actor" should
     "send back 'GimmeWorkLS' after ! 'WorkAvailable'" in {
     actor ! WorkAvailable(probe.ref)
-    probe.expectMsg(500 millis, GimmeWorkLS)
+    probe.expectMsg(1000 millis, GimmeWorkLS)
   }
 
   "A LS1Actor" should
     "send back nothing " +
       "when every ObjFn Evaluation is timed out" in {
     def fn(p: List[Double], other: Option[Seq[Any]] = None): Double = {
-      Thread.sleep(5000)
+      Thread.sleep(10000)
       -p.sum
     }
     val request = Request(
@@ -38,7 +40,7 @@ class LS1ActorTest extends FlatSpec with Matchers {
     val best = PopulationNode(List(-0.7, -0.7), request)
     val fdur = Duration(200, java.util.concurrent.TimeUnit.MILLISECONDS)
     actor ! LocalSearch(probe.ref, slave, best, 0, request, fdur)
-    probe.expectNoMsg(500 millis)
+    probe.expectNoMsg(1000 millis)
   }
 
   // Path - [1/9]
@@ -58,9 +60,9 @@ class LS1ActorTest extends FlatSpec with Matchers {
     node.objFnVal = Some(request.objFn(node.param, request.additionalParam))
     val fdur = Duration(200, java.util.concurrent.TimeUnit.MILLISECONDS)
     actor ! LocalSearch(probe.ref, slave, best, 0, request, fdur)
-    probe.expectMsg(500 millis, UpdateBestNode(node))
-    probe.expectMsg(500 millis, AddNumEval(1))
-    probe.expectMsg(500 millis, GimmeWorkLS)
+    probe.expectMsg(1000 millis, UpdateBestNode(node))
+    probe.expectMsg(1000 millis, AddNumEval(1))
+    probe.expectMsg(1000 millis, GimmeWorkLS)
   }
 
   // Path - [2/9]
@@ -80,9 +82,9 @@ class LS1ActorTest extends FlatSpec with Matchers {
     node.objFnVal = Some(request.objFn(node.param, request.additionalParam))
     val fdur = Duration(200, java.util.concurrent.TimeUnit.MILLISECONDS)
     actor ! LocalSearch(probe.ref, slave, best, 0, request, fdur)
-    probe.expectMsg(500 millis, UpdateBestNode(node))
-    probe.expectMsg(500 millis, AddNumEval(2))
-    probe.expectMsg(500 millis, GimmeWorkLS)
+    probe.expectMsg(1000 millis, UpdateBestNode(node))
+    probe.expectMsg(1000 millis, AddNumEval(2))
+    probe.expectMsg(1000 millis, GimmeWorkLS)
   }
 
   // Path - [3/9]
@@ -100,8 +102,8 @@ class LS1ActorTest extends FlatSpec with Matchers {
     best.objFnVal = Some(-9999.9)
     val fdur = Duration(200, java.util.concurrent.TimeUnit.MILLISECONDS)
     actor ! LocalSearch(probe.ref, slave, best, 0, request, fdur)
-    probe.expectMsg(500 millis, AddNumEval(2))
-    probe.expectMsg(500 millis, GimmeWorkLS)
+    probe.expectMsg(1000 millis, AddNumEval(2))
+    probe.expectMsg(1000 millis, GimmeWorkLS)
   }
 
   // Path - [4/9]
@@ -125,8 +127,8 @@ class LS1ActorTest extends FlatSpec with Matchers {
     node.objFnVal = Some(request.objFn(node.param, request.additionalParam))
     val fdur = Duration(200, java.util.concurrent.TimeUnit.MILLISECONDS)
     actor ! LocalSearch(probe.ref, slave, best, 0, request, fdur)
-    probe.expectMsg(500 millis, AddNumEval(1))
-    probe.expectMsg(500 millis, GimmeWorkLS)
+    probe.expectMsg(1000 millis, AddNumEval(1))
+    probe.expectMsg(1000 millis, GimmeWorkLS)
   }
 
   // Path - [5/9]
@@ -155,8 +157,8 @@ class LS1ActorTest extends FlatSpec with Matchers {
     node.objFnVal = Some(request.objFn(node.param, request.additionalParam))
     val fdur = Duration(200, java.util.concurrent.TimeUnit.MILLISECONDS)
     actor ! LocalSearch(probe.ref, slave, best, 0, request, fdur)
-    probe.expectMsg(500 millis, UpdateBestNode(node))
-    probe.expectMsg(500 millis, GimmeWorkLS)
+    probe.expectMsg(1000 millis, UpdateBestNode(node))
+    probe.expectMsg(1000 millis, GimmeWorkLS)
   }
 
   // Path - [6/9]
@@ -179,9 +181,9 @@ class LS1ActorTest extends FlatSpec with Matchers {
     node.objFnVal = Some(request.objFn(node.param, request.additionalParam))
     val fdur = Duration(200, java.util.concurrent.TimeUnit.MILLISECONDS)
     actor ! LocalSearch(probe.ref, slave, best, 0, request, fdur)
-    probe.expectMsg(500 millis, UpdateBestNode(node))
-    probe.expectMsg(500 millis, AddNumEval(1))
-    probe.expectMsg(500 millis, GimmeWorkLS)
+    probe.expectMsg(1000 millis, UpdateBestNode(node))
+    probe.expectMsg(1000 millis, AddNumEval(1))
+    probe.expectMsg(1000 millis, GimmeWorkLS)
   }
 
   // Path - [7/9]
@@ -207,8 +209,8 @@ class LS1ActorTest extends FlatSpec with Matchers {
     best.objFnVal = Some(1.50)
     val fdur = Duration(200, java.util.concurrent.TimeUnit.MILLISECONDS)
     actor ! LocalSearch(probe.ref, slave, best, 0, request, fdur)
-    probe.expectMsg(500 millis, AddNumEval(1))
-    probe.expectMsg(500 millis, GimmeWorkLS)
+    probe.expectMsg(1000 millis, AddNumEval(1))
+    probe.expectMsg(1000 millis, GimmeWorkLS)
   }
 
   // Path - [8/9]
@@ -238,8 +240,8 @@ class LS1ActorTest extends FlatSpec with Matchers {
     node.objFnVal = Some(request.objFn(node.param, request.additionalParam))
     val fdur = Duration(200, java.util.concurrent.TimeUnit.MILLISECONDS)
     actor ! LocalSearch(probe.ref, slave, best, 0, request, fdur)
-    probe.expectMsg(500 millis, UpdateBestNode(node))
-    probe.expectMsg(500 millis, GimmeWorkLS)
+    probe.expectMsg(1000 millis, UpdateBestNode(node))
+    probe.expectMsg(1000 millis, GimmeWorkLS)
   }
 
   // Path - [9/9]
@@ -265,7 +267,7 @@ class LS1ActorTest extends FlatSpec with Matchers {
     node.objFnVal = Some(request.objFn(node.param, request.additionalParam))
     val fdur = Duration(200, java.util.concurrent.TimeUnit.MILLISECONDS)
     actor ! LocalSearch(probe.ref, slave, best, 0, request, fdur)
-    probe.expectMsg(500 millis, GimmeWorkLS)
+    probe.expectMsg(1000 millis, GimmeWorkLS)
   }
 
 }

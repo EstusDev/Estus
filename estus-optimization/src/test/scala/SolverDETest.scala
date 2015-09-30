@@ -10,7 +10,6 @@ class SolverDETest extends FlatSpec with Matchers {
   import akka.actor.{ActorSystem, Props}
   import akka.routing.RoundRobinPool
   import com.estus.optimization.MessageProtocol.Start
-  import scala.concurrent.duration.FiniteDuration
 
   val ds: List[Int] = List(2, 10)
   val system = ActorSystem()
@@ -43,7 +42,8 @@ class SolverDETest extends FlatSpec with Matchers {
           request,
           workerRouter,
           journal,
-          Duration(3*D, java.util.concurrent.TimeUnit.SECONDS)
+          Duration(3*D, java.util.concurrent.TimeUnit.SECONDS),
+          Duration(200, java.util.concurrent.TimeUnit.MILLISECONDS)
         )),
         name = s"ackley-d$D") ! Start
       key
@@ -75,7 +75,8 @@ class SolverDETest extends FlatSpec with Matchers {
           request,
           workerRouter,
           journal,
-          Duration(3*D, java.util.concurrent.TimeUnit.SECONDS)
+          Duration(3*D, java.util.concurrent.TimeUnit.SECONDS),
+          Duration(200, java.util.concurrent.TimeUnit.MILLISECONDS)
         )),
         name = s"rastrigin-d$D") ! Start
       key
@@ -106,7 +107,8 @@ class SolverDETest extends FlatSpec with Matchers {
           request,
           workerRouter,
           journal,
-          Duration(3*D, java.util.concurrent.TimeUnit.SECONDS)
+          Duration(3*D, java.util.concurrent.TimeUnit.SECONDS),
+          Duration(200, java.util.concurrent.TimeUnit.MILLISECONDS)
         )),
         name = s"schwefel-d$D") ! Start
       key
@@ -137,7 +139,8 @@ class SolverDETest extends FlatSpec with Matchers {
           request,
           workerRouter,
           journal,
-          Duration(3*D, java.util.concurrent.TimeUnit.SECONDS)
+          Duration(3*D, java.util.concurrent.TimeUnit.SECONDS),
+          Duration(200, java.util.concurrent.TimeUnit.MILLISECONDS)
         )),
         name = s"sphere-d$D") ! Start
       key
@@ -168,7 +171,8 @@ class SolverDETest extends FlatSpec with Matchers {
           request,
           workerRouter,
           journal,
-          Duration(3*D, java.util.concurrent.TimeUnit.SECONDS)
+          Duration(3*D, java.util.concurrent.TimeUnit.SECONDS),
+          Duration(200, java.util.concurrent.TimeUnit.MILLISECONDS)
         )),
         name = s"ellipsoid-d$D") ! Start
       key
@@ -199,7 +203,8 @@ class SolverDETest extends FlatSpec with Matchers {
           request,
           workerRouter,
           journal,
-          Duration(3*D, java.util.concurrent.TimeUnit.SECONDS)
+          Duration(3*D, java.util.concurrent.TimeUnit.SECONDS),
+          Duration(200, java.util.concurrent.TimeUnit.MILLISECONDS)
         )),
         name = s"zakharov-d$D") ! Start
       key
@@ -230,7 +235,8 @@ class SolverDETest extends FlatSpec with Matchers {
           request,
           workerRouter,
           journal,
-          Duration(3*D, java.util.concurrent.TimeUnit.SECONDS)
+          Duration(3*D, java.util.concurrent.TimeUnit.SECONDS),
+          Duration(200, java.util.concurrent.TimeUnit.MILLISECONDS)
         )),
         name = s"rosenbrock-d$D") ! Start
       key
@@ -260,7 +266,8 @@ class SolverDETest extends FlatSpec with Matchers {
         request,
         workerRouter,
         journal,
-        Duration(2, java.util.concurrent.TimeUnit.SECONDS)
+        Duration(2, java.util.concurrent.TimeUnit.SECONDS),
+        Duration(200, java.util.concurrent.TimeUnit.MILLISECONDS)
       )),
       name = s"deb-d2") ! Start
     while (journal.retrieveRow(key).get.solution.isEmpty) {

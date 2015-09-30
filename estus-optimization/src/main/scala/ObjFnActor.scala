@@ -2,12 +2,10 @@ package com.estus.optimization
 
 import com.estus.optimization.MessageProtocol._
 import akka.actor.{ActorLogging, Actor}
-import akka.pattern.after
 
-import scala.concurrent.duration.FiniteDuration
-import scala.concurrent.{TimeoutException, Future}
+import scala.concurrent.{Await, Future}
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.util.{Failure, Success}
+import scala.util.{Failure, Success, Try}
 
 
 
@@ -19,23 +17,13 @@ case class ObjFnActor() extends Actor with ActorLogging {
       master ! GimmeWork
 
     case Work(master, id, p, fn, to) =>
-      lazy val f = if (to.isFinite) {
-        val fdur = FiniteDuration(
-          to.toMillis,
-          java.util.concurrent.TimeUnit.MILLISECONDS)
-        lazy val t = after(duration = fdur, using = context.system.scheduler)(
-          Future.failed(
-            new TimeoutException(s"${Work(master, id, p, fn, to)} timed out!")))
-        Future firstCompletedOf Seq(Future { fn(p) }, t)
-      } else {
-        Future { fn(p) }
-      }
-      f onComplete {
+      lazy val f = Future { fn(p) }
+      Try(Await.result(f, to)) match {
         case Success(v) =>
           master ! Result(id, v)
           master ! GimmeWork
-        case Failure(cause) =>
-          master ! Failure(cause)
+        case Failure(e) =>
+          master ! Failure(e)
           master ! GimmeWork
       }
 
