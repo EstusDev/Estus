@@ -24,6 +24,8 @@ object MessageProtocol {
 
   /* <<< DENMLS1 Stuff >>> */
 
+  case class GimmeWorkLS () extends Message
+
   case class LocalSearch (
       master: ActorRef,
       slave: ActorRef,
