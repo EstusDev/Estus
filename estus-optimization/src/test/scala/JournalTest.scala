@@ -22,6 +22,7 @@ class JournalTest extends FlatSpec with Matchers {
     timeElapsed = 0)
   val conf = new SparkConf().setMaster("local").setAppName("kryoexample")
   conf.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
+  val sc = new SparkContext(conf)
 
 
 
@@ -62,7 +63,6 @@ class JournalTest extends FlatSpec with Matchers {
 
   "A Journal" should
     "be able to persist itself to file then overwrite itself with this file" in {
-    val sc = new SparkContext(conf)
     val path = System.getProperty("java.io.tmpdir") +
       "/journaltest"
     Path(path).deleteRecursively()
@@ -75,12 +75,10 @@ class JournalTest extends FlatSpec with Matchers {
     journal.overwriteJournalWithFile(sc, path)
     journal.size should be (100)
     Path(path).deleteRecursively()
-    sc.stop()
   }
 
   "A Journal" should
     "be able to append additional records to itself from file" in {
-    val sc = new SparkContext(conf)
     val path = System.getProperty("java.io.tmpdir") +
       "/journaltest"
     Path(path).deleteRecursively()
@@ -94,7 +92,6 @@ class JournalTest extends FlatSpec with Matchers {
     journal.appendJournalWithFile(sc, path)
     journal.size should be (100)
     Path(path).deleteRecursively()
-    sc.stop()
   }
 
 }
