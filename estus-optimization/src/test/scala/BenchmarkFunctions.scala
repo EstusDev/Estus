@@ -29,7 +29,7 @@ case class BenchmarkFunctions (D: Int, solverConfig: SolverConfig) {
     D = D,
     LB = List.fill(D)(-32.768),
     UB = List.fill(D)(32.768),
-    initialParam = Some(List.fill(D)(-0.1 + Random.nextDouble * (0.2))),
+    initialParam = Some(List.fill(D)(0.0 + Random.nextDouble * (0.1))),
     solverConfig = solverConfig)
 
   /*
@@ -48,7 +48,7 @@ case class BenchmarkFunctions (D: Int, solverConfig: SolverConfig) {
     D = D,
     LB = List.fill(D)(-5.12),
     UB = List.fill(D)(5.12),
-    initialParam = Some(List.fill(D)(-0.1 + Random.nextDouble * (0.2))),
+    initialParam = Some(List.fill(D)(0.0 + Random.nextDouble * (0.1))),
     solverConfig = solverConfig)
 
   /*
@@ -67,7 +67,7 @@ case class BenchmarkFunctions (D: Int, solverConfig: SolverConfig) {
     D = D,
     LB = List.fill(D)(-500.0),
     UB = List.fill(D)(500.0),
-    initialParam = Some(List.fill(D)(417.0 + Random.nextDouble * (420.0 - 417.0))),
+    initialParam = Some(List.fill(D)(420.5 + Random.nextDouble * (420.0 - 419.0))),
     solverConfig = solverConfig)
 
 
@@ -92,7 +92,7 @@ case class BenchmarkFunctions (D: Int, solverConfig: SolverConfig) {
     D = D,
     LB = List.fill(D)(-5.12),
     UB = List.fill(D)(5.12),
-    initialParam = Some(List.fill(D)(-0.1 + Random.nextDouble * (0.2))),
+    initialParam = Some(List.fill(D)(0.0 + Random.nextDouble * (0.1))),
     solverConfig = solverConfig)
 
   /*
@@ -115,7 +115,7 @@ case class BenchmarkFunctions (D: Int, solverConfig: SolverConfig) {
     D = D,
     LB = List.fill(D)(-65.536),
     UB = List.fill(D)(65.536),
-    initialParam = Some(List.fill(D)(-0.1 + Random.nextDouble * (0.2))),
+    initialParam = Some(List.fill(D)(0.0 + Random.nextDouble * (0.1))),
     solverConfig = solverConfig)
 
 
@@ -146,7 +146,7 @@ case class BenchmarkFunctions (D: Int, solverConfig: SolverConfig) {
     D = D,
     LB = List.fill(D)(-5.0),
     UB = List.fill(D)(10.0),
-    initialParam = Some(List.fill(D)(-0.1 + Random.nextDouble * (0.2))),
+    initialParam = Some(List.fill(D)(0.0 + Random.nextDouble * (0.1))),
     solverConfig = solverConfig)
 
 
@@ -175,7 +175,7 @@ case class BenchmarkFunctions (D: Int, solverConfig: SolverConfig) {
     D = D,
     LB = List.fill(D)(-5.0),
     UB = List.fill(D)(10.0),
-    initialParam = Some(List.fill(D)(0.9 + Random.nextDouble * (1.1 - 0.9))),
+    initialParam = Some(List.fill(D)(1.0 + Random.nextDouble * (0.1))),
     solverConfig = solverConfig)
 
 

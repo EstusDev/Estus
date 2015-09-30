@@ -40,7 +40,7 @@ case class Request (
 
 
 
-case class DiffEvoConfig (
+case class DEConfig (
     NP: Int,
     F: Option[Double] = None,
     Cr: Option[Double] = None,

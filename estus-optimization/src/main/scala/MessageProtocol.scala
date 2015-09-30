@@ -2,6 +2,8 @@ package com.estus.optimization
 
 import akka.actor.ActorRef
 
+import scala.concurrent.duration.Duration
+
 
 
 object MessageProtocol {
@@ -16,8 +18,41 @@ object MessageProtocol {
       master: ActorRef,
       key: Any,
       param: List[Double],
-      fn: (List[Double]) => Double)
+      fn: (List[Double]) => Double,
+      timeout: Duration)
     extends Message
+
+  /* <<< DENMLS1 Stuff >>> */
+
+  case class GimmeWorkDENM () extends Message
+
+  case class DENelderMead (
+      master: ActorRef,
+      slave: ActorRef,
+      key: Any,
+      node: PopulationNode,
+      request: Request,
+      to: Duration
+    ) extends Message
+
+  case class GimmeWorkLS () extends Message
+
+  case class LocalSearch (
+      master: ActorRef,
+      slave: ActorRef,
+      best: PopulationNode,
+      d: Int,
+      request: Request,
+      timeout: Duration)
+    extends Message
+
+  case class UpdatePopulation (key: Any, objVal: Double) extends Message
+
+  case class UpdateBestNode (best: PopulationNode) extends Message
+
+  case class AddNumEval (num: Int) extends Message
+
+  /* <<< DENMLS1 Stuff >>> */
 
   case class Result (key: Any, objVal: Double) extends Message
 
