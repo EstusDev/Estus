@@ -70,7 +70,7 @@ case class LS1Actor() extends Actor with ActorLogging {
     case LocalSearch(master, slave, best, d, request, to) =>
       val uuid = java.util.UUID.randomUUID.toString
       val objFn = request.objFn(_: List[Double], request.additionalParam)
-      val mut = request.solverConfig.asInstanceOf[DiffEvoConfig].mutationStrategy
+      val mut = request.solverConfig.asInstanceOf[DEConfig].mutationStrategy
       val node1 = getNode(best, getParam(best.param, d, -best.SR.get, request), request)
       if (node1.constVal <= 0) {
         val key1 = (uuid, FirstEval, 1)
@@ -112,7 +112,7 @@ case class LS1Actor() extends Actor with ActorLogging {
           val to = value.to
           val request = value.request
           val objFn = request.objFn(_: List[Double], request.additionalParam)
-          val mut = request.solverConfig.asInstanceOf[DiffEvoConfig].mutationStrategy
+          val mut = request.solverConfig.asInstanceOf[DEConfig].mutationStrategy
           if (node1 == selectBetterNode(node1, best, mut)) {
             master ! UpdateBestNode(node1)
             master ! AddNumEval(key._3)
@@ -150,7 +150,7 @@ case class LS1Actor() extends Actor with ActorLogging {
           val best = value.best
           val master = value.master
           val request = value.request
-          val mut = request.solverConfig.asInstanceOf[DiffEvoConfig].mutationStrategy
+          val mut = request.solverConfig.asInstanceOf[DEConfig].mutationStrategy
           if (node == selectBetterNode(node, best, mut)) {
             master ! UpdateBestNode(node)
             master ! AddNumEval(key._3)
