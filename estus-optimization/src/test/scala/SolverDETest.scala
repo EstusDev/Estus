@@ -30,8 +30,9 @@ class SolverDETest extends FlatSpec with Matchers {
 
 
 
-  "A Ackley's Function" should
-    "produce global minimum 0.0 +- 1e-3 at [0.0 +- 1e-3]^D in 3D seconds" in {
+  "A SolverDE" should
+    "produce global minimum 0.0 +- 1e-3 at [0.0 +- 1e-3]^D in 3D seconds" +
+      " for a Ackley's Function" in {
     val keys: List[String] = ds.map(D => {
       val configNew = config.copy(tolRel = 1e-5)
       val request = BenchmarkFunctions(D, configNew).ackleyRequest
@@ -63,8 +64,9 @@ class SolverDETest extends FlatSpec with Matchers {
 
 
 
-  "A Rastrigin's Function" should
-    "produce global minimum 0.0 +- 1e-3 at [0.0 +- 1e-3]^D in 3D seconds" in {
+  it should
+    "produce global minimum 0.0 +- 1e-3 at [0.0 +- 1e-3]^D in 3D seconds" +
+      " for a Rastrigin's Function" in {
     val keys: List[String] = ds.map(D => {
       val configNew = config.copy(tolRel = 1e-5)
       val request = BenchmarkFunctions(D, configNew).rastriginRequest
@@ -96,8 +98,9 @@ class SolverDETest extends FlatSpec with Matchers {
 
 
 
-  "A Schwefel's Function" should
-    "produce global minimum 0.0 +- 1e-3 at [420.9687 +- 1e-3]^D in 3D seconds" in {
+  it should
+    "produce global minimum 0.0 +- 1e-3 at [420.9687 +- 1e-3]^D in 3D seconds" +
+      " for a Schwefel's Function" in {
     val keys: List[String] = ds.map(D => {
       val request = BenchmarkFunctions(D, config).schwefelRequest
       val key = journal.registerRow(request)
@@ -128,8 +131,9 @@ class SolverDETest extends FlatSpec with Matchers {
 
 
 
-  "A Sphere Function" should
-    "produce global minimum 0.0 +- 1e-3 at [0.0 +- 1e-3]^D in 3D seconds" in {
+  it should
+    "produce global minimum 0.0 +- 1e-3 at [0.0 +- 1e-3]^D in 3D seconds" +
+      " for a Sphere Function" in {
     val keys: List[String] = ds.map(D => {
       val request = BenchmarkFunctions(D, config).sphereRequest
       val key = journal.registerRow(request)
@@ -160,8 +164,9 @@ class SolverDETest extends FlatSpec with Matchers {
 
 
 
-  "A Rotated Hyper-Ellipsoid Function" should
-    "produce global minimum 0.0 +- 1e-3 at [0.0 +- 1e-3]^D in 3D seconds" in {
+  it should
+    "produce global minimum 0.0 +- 1e-3 at [0.0 +- 1e-3]^D in 3D seconds" +
+      " for a Rotated Hyper-Ellipsoid Function" in {
     val keys: List[String] = ds.map(D => {
       val request = BenchmarkFunctions(D, config).ellipsoidRequest
       val key = journal.registerRow(request)
@@ -192,8 +197,9 @@ class SolverDETest extends FlatSpec with Matchers {
 
 
 
-  "A Zakharov Function" should
-    "produce global minimum 0.0 +- 1e-3 at [0.0 +- 1e-3]^D in 3D seconds" in {
+  it should
+    "produce global minimum 0.0 +- 1e-3 at [0.0 +- 1e-3]^D in 3D seconds" +
+      " for a Zakharov Function" in {
     val keys: List[String] = ds.map(D => {
       val request = BenchmarkFunctions(D, config).zakharovRequest
       val key = journal.registerRow(request)
@@ -224,8 +230,9 @@ class SolverDETest extends FlatSpec with Matchers {
 
 
 
-  "A Rosenbrock Function" should
-    "have global minimum 0.0 +- 1e-3 at [1.0 +- 1e-3]^D in 3D seconds" in {
+  it should
+    "produce global minimum 0.0 +- 1e-3 at [1.0 +- 1e-3]^D in 3D seconds" +
+      " for a Rosenbrock Function" in {
     val keys: List[String] = ds.map(D => {
       val request = BenchmarkFunctions(D, config).rosenbrockRequest
       val key = journal.registerRow(request)
@@ -256,8 +263,9 @@ class SolverDETest extends FlatSpec with Matchers {
 
 
 
-  "A Deb Function" should
-    "produce global minimum 13.59085 +- 1e-3 at (2.246826 +- 1e-3, 2.381865 +- 1e-3) in 2 seconds" in {
+  it should
+    "produce global minimum 13.59085 +- 1e-3 at (2.246826 +- 1e-3, 2.381865 +- 1e-3) in 2 seconds" +
+      " for a Deb Function" in {
     val request = BenchmarkFunctions(2, config).debRequest
     val key = journal.registerRow(request)
     system.actorOf(

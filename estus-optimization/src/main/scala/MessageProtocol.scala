@@ -10,9 +10,13 @@ object MessageProtocol {
 
   sealed trait Message
 
+  /* Common Actor Messages */
+
   case class WorkAvailable (master: ActorRef) extends Message
 
   case class GimmeWork () extends Message
+
+  /* ObjFnActor Messages */
 
   case class Work (
       master: ActorRef,
@@ -22,9 +26,9 @@ object MessageProtocol {
       timeout: Duration)
     extends Message
 
-  /* <<< DENMLS1 Stuff >>> */
+  case class Result (key: Any, objVal: Double) extends Message
 
-  case class GimmeWorkDENM () extends Message
+  /* MOSActor Messages */
 
   case class DENelderMead (
       master: ActorRef,
@@ -34,8 +38,6 @@ object MessageProtocol {
       request: Request,
       to: Duration
     ) extends Message
-
-  case class GimmeWorkLS () extends Message
 
   case class LocalSearch (
       master: ActorRef,
@@ -52,9 +54,7 @@ object MessageProtocol {
 
   case class AddNumEval (num: Int) extends Message
 
-  /* <<< DENMLS1 Stuff >>> */
-
-  case class Result (key: Any, objVal: Double) extends Message
+  /* FSM Messages */
 
   case class Start () extends Message
 
