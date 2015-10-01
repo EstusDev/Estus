@@ -107,3 +107,50 @@ case class DEConfig (
   }
 
 }
+
+
+
+case class MOSConfig (
+    NP: Int,
+    step: Int,
+    maxNumEval: Int,
+    Ar: Double = 0.1, // Adaptive rate for Cr and Rho
+    constStrategy: String = "rank",
+    tolRel: Double = 1e-8,
+    tolStep: Int = 500,
+    logTrace: Boolean = false)
+  extends SolverConfig {
+
+  if (NP <= 3)
+    throw new IllegalArgumentException(s"NP must be > 3 (NP = $NP).")
+
+  if (step <= 0)
+    throw new IllegalArgumentException(s"step must be > 0 (step = $step).")
+
+  if (maxNumEval <= 0) {
+    throw new IllegalArgumentException(
+      s"maxEvalNum must be > 0 (MaxIter = $maxNumEval).")
+  }
+
+  if (Ar <= 0 || Ar > 1)
+    throw new IllegalArgumentException(s"Ar must be in (0, 1] (Ar = $Ar).")
+
+  if (tolRel < 0) {
+    throw new IllegalArgumentException(
+      s"tolRel must be >= 0 (tolRel = $tolRel).")
+  }
+
+  if (tolStep <= 0) {
+    throw new IllegalArgumentException(
+      s"tolStep must be > 0 (tolStep = $tolRel).")
+  }
+
+  constStrategy match {
+    case "rank" =>
+    case "dominance" =>
+    case _ =>
+      throw new IllegalArgumentException(
+        "constStrategy must be one of (rank, dominance)")
+  }
+
+}

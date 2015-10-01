@@ -14,9 +14,11 @@ case class EvalStack [T, A] () {
 
   def size: Int = stack.size
 
-  def push (
-    node: (T, A),
-    maxSize: Option[Int] = None): Unit = {
+  def peak (): Option[(T, A)] = {
+    stack.headOption
+  }
+
+  def push (node: (T, A), maxSize: Option[Int] = None): Unit = {
     stack = node :: stack
     maxSize match {
       case Some(s) =>
