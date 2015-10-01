@@ -7,7 +7,15 @@ import scala.util.Failure
 
 
 
-case class LS1Actor() extends Actor with ActorLogging {
+case class MOSActor() extends Actor with ActorLogging {
+
+  /* Differential Evolution Nelder-Mead Variables */
+
+  case class ValueDENM (master: ActorRef, id: Any)
+
+  var EvalMapDENM = scala.collection.immutable.Map.empty[String, ValueDENM]
+
+  /* Local Search 1 Variables */
 
   class EvalType()
 
@@ -15,9 +23,9 @@ case class LS1Actor() extends Actor with ActorLogging {
 
   private object SecondEval extends EvalType
 
-  type Key = (String, EvalType, Int)
+  type KeyLS1 = (String, EvalType, Int)
 
-  case class Value (
+  case class ValueLS1 (
     node: PopulationNode,
     best: PopulationNode,
     master: ActorRef,
@@ -26,7 +34,7 @@ case class LS1Actor() extends Actor with ActorLogging {
     request: Request,
     to: Duration)
 
-  var EvalMap = scala.collection.immutable.Map.empty[Key, Value]
+  var EvalMapLS1 = scala.collection.immutable.Map.empty[KeyLS1, ValueLS1]
 
   def selectBetterNode = Population(0).selectBetterNode(
     _: PopulationNode,
@@ -64,8 +72,36 @@ case class LS1Actor() extends Actor with ActorLogging {
 
   def receive = {
 
+    /* Common Messages */
+
     case WorkAvailable(master) =>
-      master ! GimmeWorkLS
+      master ! GimmeWork
+
+    case Failure(cause) =>
+      log.info(cause.toString)
+
+    /* Differential Evolution Nelder-Mead Messages */
+
+    case DENelderMead(master, slave, id, node, request, to) =>
+      val key = java.util.UUID.randomUUID.toString
+      val value = ValueDENM(master, id)
+      val objFn = request.objFn(_: List[Double], request.additionalParam)
+      EvalMapDENM = EvalMapDENM + (key -> value)
+      slave ! Work(self, key, node.param, objFn, to)
+
+    case Result(k, v) if k.isInstanceOf[String] =>
+      val key = k.asInstanceOf[String]
+      val objFnVal = v.toDouble
+      EvalMapDENM.get(key) match {
+        case Some(value) =>
+          value.master ! UpdatePopulation(value.id, objFnVal)
+          value.master ! AddNumEval(1)
+          value.master ! GimmeWork
+        case _ =>
+      }
+      EvalMapDENM = EvalMapDENM - key
+
+    /* Local Search 1 Messages*/
 
     case LocalSearch(master, slave, best, d, request, to) =>
       val uuid = java.util.UUID.randomUUID.toString
@@ -74,34 +110,34 @@ case class LS1Actor() extends Actor with ActorLogging {
       val node1 = getNode(best, getParam(best.param, d, -best.SR.get, request), request)
       if (node1.constVal <= 0) {
         val key1 = (uuid, FirstEval, 1)
-        val value1 = Value(node1, best, master, slave, d, request, to)
-        EvalMap = EvalMap + (key1 -> value1)
+        val value1 = ValueLS1(node1, best, master, slave, d, request, to)
+        EvalMapLS1 = EvalMapLS1 + (key1 -> value1)
         slave ! Work(self, key1, node1.param, objFn, to)
       } else {
         if (node1 == selectBetterNode(node1, best, mut)) {
           master ! UpdateBestNode(node1)
-          master ! GimmeWorkLS
+          master ! GimmeWork
         } else {
           val node2 = getNode(best, getParam(best.param, d, 0.5 * best.SR.get, request), request)
           if (node2.constVal <= 0) {
             val key2 = (uuid, SecondEval, 1)
-            val value2 = Value(node2, best, master, slave, d, request, to)
-            EvalMap = EvalMap + (key2 -> value2)
+            val value2 = ValueLS1(node2, best, master, slave, d, request, to)
+            EvalMapLS1 = EvalMapLS1 + (key2 -> value2)
             slave ! Work(self, key2, node2.param, objFn, to)
           } else {
             if (node2 == selectBetterNode(node2, best, mut)) {
               master ! UpdateBestNode(node2)
-              master ! GimmeWorkLS
+              master ! GimmeWork
             } else {
-              master ! GimmeWorkLS
+              master ! GimmeWork
             }
           }
         }
       }
 
     case Result((uuid, FirstEval, numEval), v) =>
-      val key = (uuid, FirstEval, numEval).asInstanceOf[Key]
-      EvalMap.get(key) match {
+      val key = (uuid, FirstEval, numEval).asInstanceOf[KeyLS1]
+      EvalMapLS1.get(key) match {
         case Some(value) =>
           val node1 = value.node
           node1.objFnVal = Some(v)
@@ -116,34 +152,34 @@ case class LS1Actor() extends Actor with ActorLogging {
           if (node1 == selectBetterNode(node1, best, mut)) {
             master ! UpdateBestNode(node1)
             master ! AddNumEval(key._3)
-            master ! GimmeWorkLS
+            master ! GimmeWork
           } else {
             val node2 = getNode(best, getParam(best.param, d, 0.5 * best.SR.get, request), request)
             if (node2.constVal <= 0) {
               val key2 = (key._1, SecondEval, key._3 + 1)
-              val value2 = Value(node2, best, master, slave, d, request, to)
-              EvalMap = EvalMap + (key2 -> value2)
+              val value2 = ValueLS1(node2, best, master, slave, d, request, to)
+              EvalMapLS1 = EvalMapLS1 + (key2 -> value2)
               slave ! Work(self, key2, node2.param, objFn, to)
             } else {
               /* IMPOSSIBLE CONDITION !!!
               if (node2 == selectBetterNode(node2, best, mut)) {
                 master ! UpdateBestNode(node2)
                 master ! AddNumEval(key._3)
-                master ! GimmeWorkLS
+                master ! GimmeWork
               } else {
               */
               master ! AddNumEval(key._3)
-              master ! GimmeWorkLS
+              master ! GimmeWork
               /*}*/
             }
           }
         case _ =>
       }
-      EvalMap = EvalMap - key
+      EvalMapLS1 = EvalMapLS1 - key
 
     case Result((uuid, SecondEval, numEval), v) =>
-      val key = (uuid, SecondEval, numEval).asInstanceOf[Key]
-      EvalMap.get(key) match {
+      val key = (uuid, SecondEval, numEval).asInstanceOf[KeyLS1]
+      EvalMapLS1.get(key) match {
         case Some(value) =>
           val node = value.node
           node.objFnVal = Some(v)
@@ -154,17 +190,14 @@ case class LS1Actor() extends Actor with ActorLogging {
           if (node == selectBetterNode(node, best, mut)) {
             master ! UpdateBestNode(node)
             master ! AddNumEval(key._3)
-            master ! GimmeWorkLS
+            master ! GimmeWork
           } else {
             master ! AddNumEval(key._3)
-            master ! GimmeWorkLS
+            master ! GimmeWork
           }
         case _ =>
       }
-      EvalMap = EvalMap - key
-
-    case Failure(cause) =>
-      log.info(cause.toString)
+      EvalMapLS1 = EvalMapLS1 - key
 
   }
 

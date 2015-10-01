@@ -32,7 +32,7 @@ class JournalTest extends FlatSpec with Matchers {
     journal.keys should contain (key)
   }
 
-  "A Journal" should
+  it should
     "be able to update that record" in {
     val key = journal.keys.head
     journal.retrieveRow(key).get.solution should be (None)
@@ -40,20 +40,20 @@ class JournalTest extends FlatSpec with Matchers {
     journal.retrieveRow(key).get.solution.get.status should be ("JournalTest")
   }
 
-  "A Journal" should
+  it should
     "be able to retrieve that record" in {
     val key = journal.keys.head
     journal.retrieveRow(key).get.solution.get.status should be ("JournalTest")
   }
 
-  "A Journal" should
+  it should
     "be able to remove that record" in {
     val key = journal.keys.head
     journal.removeRow(key)
     journal.keys should not contain key
   }
 
-  "A Journal" should
+  it should
     "be able to purge all records" in {
     (1 to 100).foreach(_ => journal.registerRow(request))
     journal.size should be (100)
@@ -61,7 +61,7 @@ class JournalTest extends FlatSpec with Matchers {
     journal.size should be (0)
   }
 
-  "A Journal" should
+  it should
     "be able to persist itself to file then overwrite itself with this file" in {
     val path = System.getProperty("java.io.tmpdir") +
       "/journaltest"
@@ -77,7 +77,7 @@ class JournalTest extends FlatSpec with Matchers {
     Path(path).deleteRecursively()
   }
 
-  "A Journal" should
+  it should
     "be able to append additional records to itself from file" in {
     val path = System.getProperty("java.io.tmpdir") +
       "/journaltest"
