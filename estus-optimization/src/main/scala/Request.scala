@@ -127,6 +127,9 @@ case class MOSConfig (
   if (step <= 0)
     throw new IllegalArgumentException(s"step must be > 0 (step = $step).")
 
+  if (step >= maxNumEval)
+    throw new IllegalArgumentException(s"step must be > maxNumEval (step = $step).")
+
   if (maxNumEval <= 0) {
     throw new IllegalArgumentException(
       s"maxEvalNum must be > 0 (MaxIter = $maxNumEval).")
