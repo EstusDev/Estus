@@ -17,7 +17,7 @@ case class MOSActor() extends Actor with ActorLogging {
 
   /* Local Search 1 Variables */
 
-  class EvalType()
+  trait EvalType
 
   private object FirstEval extends EvalType
 
