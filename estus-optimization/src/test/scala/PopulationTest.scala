@@ -25,7 +25,7 @@ class PopulationTest extends FlatSpec with Matchers {
 
 
   "A PopulationNode" should
-    "be have a correct constVec and constVal" in {
+    "have correct constVec and constVal" in {
     val node = PopulationNode(List(-1.0, -1.0), request)
     node.constVec should be (List(2.99, 2.0, -4.0))
     node.constVal should be (4.99)
