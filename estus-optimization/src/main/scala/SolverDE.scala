@@ -1,6 +1,6 @@
 package com.estus.optimization
 
-import akka.actor.{Stash, ActorLogging, FSM, ActorRef}
+import akka.actor.{ActorLogging, FSM, ActorRef}
 import scala.concurrent.duration.{FiniteDuration, Duration}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.math._
@@ -19,7 +19,6 @@ class SolverDE (
     timeoutObjFn: Duration = Duration.Inf)
   extends FSM[State, Data]
     with ActorLogging
-    with Stash
     with StackKey[(Boolean, Option[Int], String)] {
 
   private val startTime = System.currentTimeMillis()
@@ -123,11 +122,11 @@ class SolverDE (
           bestNode = x._1
         pop.add(x._1)
       })
-      goto(EvolutionDEState)
+      goto(EvolutionState)
 
   }
 
-  when (EvolutionDEState) {
+  when (EvolutionState) {
 
     case Event(Evolve, _) if popExplore.size < config.NP && flagExplore =>
       // Use Nelder-Mead method to explore population space
@@ -366,7 +365,7 @@ class SolverDE (
             else
               popExplore.replaceWorst(node, config.constStrategy)
           }
-        case EvolutionDEState =>
+        case EvolutionState =>
           if (keyStack._1) { // pop: evolving phrase
             keyStack._2 match {
               case Some(i) =>
@@ -400,7 +399,7 @@ class SolverDE (
   }
 
   onTransition {
-    case InitiationState -> EvolutionDEState =>
+    case InitiationState -> EvolutionState =>
       self ! Evolve
   }
 

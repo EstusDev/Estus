@@ -87,7 +87,7 @@ case class DEConfig (
 
   if (maxNumEval <= 0) {
     throw new IllegalArgumentException(
-      s"maxEvalNum must be > 0 (MaxIter = $maxNumEval).")
+      s"maxNumEval must be > 0 (maxNumEval = $maxNumEval).")
   }
 
   mutationStrategy match {
@@ -128,11 +128,11 @@ case class MOSConfig (
     throw new IllegalArgumentException(s"step must be > 0 (step = $step).")
 
   if (step >= maxNumEval)
-    throw new IllegalArgumentException(s"step must be > maxNumEval (step = $step).")
+    throw new IllegalArgumentException(s"step must be > maxNumEval (step = $step maxNumEval = $maxNumEval).")
 
   if (maxNumEval <= 0) {
     throw new IllegalArgumentException(
-      s"maxEvalNum must be > 0 (MaxIter = $maxNumEval).")
+      s"maxNumEval must be > 0 (maxNumEval = $maxNumEval).")
   }
 
   if (Ar <= 0 || Ar > 1)
