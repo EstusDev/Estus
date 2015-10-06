@@ -14,7 +14,7 @@ case class EvalStack [T, A] () {
 
   def size: Int = stack.size
 
-  def peak (): Option[(T, A)] = {
+  def peek (): Option[(T, A)] = {
     stack.headOption
   }
 

@@ -7,11 +7,11 @@ import org.scalatest.{Matchers, FlatSpec}
 class EvalStackTest extends FlatSpec with Matchers {
 
   "An EvalStack" should
-    "be able to peak the stack" in {
+    "be able to peek the stack" in {
     val evalStack = EvalStack[String, Int]()
     evalStack.push(("id", 1))
     evalStack.size should be (1)
-    evalStack.peak() should be (Some(("id", 1)))
+    evalStack.peek() should be (Some(("id", 1)))
   }
 
   it should
@@ -19,7 +19,7 @@ class EvalStackTest extends FlatSpec with Matchers {
     val evalStack = EvalStack[String, Int]()
     evalStack.push(("id", 1))
     evalStack.size should be (1)
-    evalStack.peak() should be (Some(("id", 1)))
+    evalStack.peek() should be (Some(("id", 1)))
   }
 
   it should
@@ -29,7 +29,7 @@ class EvalStackTest extends FlatSpec with Matchers {
     evalStack.push(("id2", 2), Some(2))
     evalStack.push(("id3", 3), Some(2))
     evalStack.size should be (2)
-    evalStack.peak() should be (Some(("id3", 3)))
+    evalStack.peek() should be (Some(("id3", 3)))
   }
 
   it should
