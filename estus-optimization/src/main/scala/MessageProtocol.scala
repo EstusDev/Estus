@@ -48,7 +48,7 @@ object MessageProtocol {
       timeout: Duration)
     extends Message
 
-  case class UpdatePopulation (key: Any, objVal: Double) extends Message
+  case class UpdatePopulation (key: Any, node: PopulationNode) extends Message
 
   case class UpdateBestNode (best: PopulationNode) extends Message
 

@@ -11,7 +11,7 @@ case class MOSActor() extends Actor with ActorLogging {
 
   /* Differential Evolution Nelder-Mead Variables */
 
-  case class ValueDENM (master: ActorRef, id: Any)
+  case class ValueDENM (master: ActorRef, id: Any, node: PopulationNode)
 
   var EvalMapDENM = scala.collection.immutable.Map.empty[String, ValueDENM]
 
@@ -84,7 +84,7 @@ case class MOSActor() extends Actor with ActorLogging {
 
     case DENelderMead(master, slave, id, node, request, to) =>
       val key = java.util.UUID.randomUUID.toString
-      val value = ValueDENM(master, id)
+      val value = ValueDENM(master, id, node)
       val objFn = request.objFn(_: List[Double], request.additionalParam)
       EvalMapDENM = EvalMapDENM + (key -> value)
       slave ! Work(self, key, node.param, objFn, to)
@@ -94,7 +94,9 @@ case class MOSActor() extends Actor with ActorLogging {
       val objFnVal = v.toDouble
       EvalMapDENM.get(key) match {
         case Some(value) =>
-          value.master ! UpdatePopulation(value.id, objFnVal)
+          val node = value.node
+          node.objFnVal = Some(objFnVal)
+          value.master ! UpdatePopulation(value.id, node)
           value.master ! AddNumEval(1)
           value.master ! GimmeWork
         case _ =>

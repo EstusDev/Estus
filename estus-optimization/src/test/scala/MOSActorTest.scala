@@ -64,7 +64,7 @@ class MOSActorTest extends FlatSpec with Matchers {
       solverConfig = MOSConfig(NP = 10, step = 10, maxNumEval = 1000))
     val node = PopulationNode(List(-0.7, -0.7), request)
     actor ! DENelderMead(probe.ref, slave, "id", node, request, Duration.Inf)
-    probe.expectMsg(30 seconds, UpdatePopulation("id", 1.4))
+    probe.expectMsg(30 seconds, UpdatePopulation("id", node))
     probe.expectMsg(30 seconds, AddNumEval(1))
     probe.expectMsg(30 seconds, GimmeWork)
     system.terminate()
