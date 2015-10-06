@@ -106,7 +106,7 @@ case class MOSActor() extends Actor with ActorLogging {
     case LocalSearch(master, slave, best, d, request, to) =>
       val uuid = java.util.UUID.randomUUID.toString
       val objFn = request.objFn(_: List[Double], request.additionalParam)
-      val mut = request.solverConfig.asInstanceOf[DEConfig].mutationStrategy
+      val strategy = request.solverConfig.asInstanceOf[MOSConfig].constStrategy
       val node1 = getNode(best, getParam(best.param, d, -best.SR.get, request), request)
       if (node1.constVal <= 0) {
         val key1 = (uuid, FirstEval, 1)
@@ -114,7 +114,7 @@ case class MOSActor() extends Actor with ActorLogging {
         EvalMapLS1 = EvalMapLS1 + (key1 -> value1)
         slave ! Work(self, key1, node1.param, objFn, to)
       } else {
-        if (node1 == selectBetterNode(node1, best, mut)) {
+        if (node1 == selectBetterNode(node1, best, strategy)) {
           master ! UpdateBestNode(node1)
           master ! GimmeWork
         } else {
@@ -125,7 +125,7 @@ case class MOSActor() extends Actor with ActorLogging {
             EvalMapLS1 = EvalMapLS1 + (key2 -> value2)
             slave ! Work(self, key2, node2.param, objFn, to)
           } else {
-            if (node2 == selectBetterNode(node2, best, mut)) {
+            if (node2 == selectBetterNode(node2, best, strategy)) {
               master ! UpdateBestNode(node2)
               master ! GimmeWork
             } else {
@@ -148,8 +148,8 @@ case class MOSActor() extends Actor with ActorLogging {
           val to = value.to
           val request = value.request
           val objFn = request.objFn(_: List[Double], request.additionalParam)
-          val mut = request.solverConfig.asInstanceOf[DEConfig].mutationStrategy
-          if (node1 == selectBetterNode(node1, best, mut)) {
+          val strategy = request.solverConfig.asInstanceOf[MOSConfig].constStrategy
+          if (node1 == selectBetterNode(node1, best, strategy)) {
             master ! UpdateBestNode(node1)
             master ! AddNumEval(key._3)
             master ! GimmeWork
@@ -162,7 +162,7 @@ case class MOSActor() extends Actor with ActorLogging {
               slave ! Work(self, key2, node2.param, objFn, to)
             } else {
               /* IMPOSSIBLE CONDITION !!!
-              if (node2 == selectBetterNode(node2, best, mut)) {
+              if (node2 == selectBetterNode(node2, best, strategy)) {
                 master ! UpdateBestNode(node2)
                 master ! AddNumEval(key._3)
                 master ! GimmeWork
@@ -186,8 +186,8 @@ case class MOSActor() extends Actor with ActorLogging {
           val best = value.best
           val master = value.master
           val request = value.request
-          val mut = request.solverConfig.asInstanceOf[DEConfig].mutationStrategy
-          if (node == selectBetterNode(node, best, mut)) {
+          val strategy = request.solverConfig.asInstanceOf[MOSConfig].constStrategy
+          if (node == selectBetterNode(node, best, strategy)) {
             master ! UpdateBestNode(node)
             master ! AddNumEval(key._3)
             master ! GimmeWork

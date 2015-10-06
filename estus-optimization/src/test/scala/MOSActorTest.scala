@@ -40,7 +40,7 @@ class MOSActorTest extends FlatSpec with Matchers {
       D = 2,
       LB = List.fill(2)(-1.0),
       UB = List.fill(2)(1.0),
-      solverConfig = DEConfig(NP = 10))
+      solverConfig = MOSConfig(NP = 10, step = 10, maxNumEval = 1000))
     val node = PopulationNode(List(-0.7, -0.7), request)
     val fdur = Duration(200, java.util.concurrent.TimeUnit.MILLISECONDS)
     actor ! DENelderMead(probe.ref, slave, "id", node, request, fdur)
@@ -61,7 +61,7 @@ class MOSActorTest extends FlatSpec with Matchers {
       D = 2,
       LB = List.fill(2)(-1.0),
       UB = List.fill(2)(1.0),
-      solverConfig = DEConfig(NP = 10))
+      solverConfig = MOSConfig(NP = 10, step = 10, maxNumEval = 1000))
     val node = PopulationNode(List(-0.7, -0.7), request)
     actor ! DENelderMead(probe.ref, slave, "id", node, request, Duration.Inf)
     probe.expectMsg(30 seconds, UpdatePopulation("id", 1.4))
@@ -86,7 +86,7 @@ class MOSActorTest extends FlatSpec with Matchers {
       D = 2,
       LB = List.fill(2)(-1.0),
       UB = List.fill(2)(1.0),
-      solverConfig = DEConfig(NP = 10))
+      solverConfig = MOSConfig(NP = 10, step = 10, maxNumEval = 1000))
     val best = PopulationNode(List(-0.7, -0.7), request)
     val fdur = Duration(200, java.util.concurrent.TimeUnit.MILLISECONDS)
     actor ! LocalSearch(probe.ref, slave, best, 0, request, fdur)
@@ -108,7 +108,7 @@ class MOSActorTest extends FlatSpec with Matchers {
       D = 2,
       LB = List.fill(2)(-1.0),
       UB = List.fill(2)(1.0),
-      solverConfig = DEConfig(NP = 10))
+      solverConfig = MOSConfig(NP = 10, step = 10, maxNumEval = 1000))
     val best = PopulationNode(List(-0.7, -0.7), request)
     best.objFnVal = Some(request.objFn(best.param, request.additionalParam))
     val node = PopulationNode(List(-0.85, -0.7), request)
@@ -134,7 +134,7 @@ class MOSActorTest extends FlatSpec with Matchers {
       D = 2,
       LB = List.fill(2)(-1.0),
       UB = List.fill(2)(1.0),
-      solverConfig = DEConfig(NP = 10))
+      solverConfig = MOSConfig(NP = 10, step = 10, maxNumEval = 1000))
     val best = PopulationNode(List(-0.7, -0.7), request)
     best.objFnVal = Some(request.objFn(best.param, request.additionalParam))
     val node = PopulationNode(List(-0.19999999999999996, -0.7), request)
@@ -160,7 +160,7 @@ class MOSActorTest extends FlatSpec with Matchers {
       D = 2,
       LB = List.fill(2)(-1.0),
       UB = List.fill(2)(1.0),
-      solverConfig = DEConfig(NP = 10))
+      solverConfig = MOSConfig(NP = 10, step = 10, maxNumEval = 1000))
     val best = PopulationNode(List(-0.7, -0.7), request)
     best.objFnVal = Some(-9999.9)
     actor ! LocalSearch(probe.ref, slave, best, 0, request, Duration.Inf)
@@ -187,7 +187,7 @@ class MOSActorTest extends FlatSpec with Matchers {
       ineqFunc = Some(ineqFunc),
       ineqLB = Some(List(-0.9, -1.0)),
       ineqUB = Some(List(-0.7, 1.0)),
-      solverConfig = DEConfig(NP = 10))
+      solverConfig = MOSConfig(NP = 10, step = 10, maxNumEval = 1000))
     val best = PopulationNode(List(-0.7, -0.7), request)
     best.objFnVal = Some(1.50)
     val node = PopulationNode(List(-0.19999999999999996, -0.7), request)
@@ -221,7 +221,7 @@ class MOSActorTest extends FlatSpec with Matchers {
       ineqFunc = Some(ineqFunc),
       ineqLB = Some(List(0.0)),
       ineqUB = Some(List(0.0)),
-      solverConfig = DEConfig(NP = 10))
+      solverConfig = MOSConfig(NP = 10, step = 10, maxNumEval = 1000))
     val best = PopulationNode(List(-0.7, -0.7), request)
     best.objFnVal = None
     val node = PopulationNode(List(-0.85, -0.7), request)
@@ -249,7 +249,7 @@ class MOSActorTest extends FlatSpec with Matchers {
       UB = List.fill(2)(1.0),
       ineqFunc = Some(ineqFunc),
       ineqLB = Some(List(-0.3, -1.0)),
-      solverConfig = DEConfig(NP = 10))
+      solverConfig = MOSConfig(NP = 10, step = 10, maxNumEval = 1000))
     val best = PopulationNode(List(-0.7, -0.7), request)
     best.objFnVal = Some(1.50)
     val node = PopulationNode(List(-0.19999999999999996, -0.7), request)
@@ -283,7 +283,7 @@ class MOSActorTest extends FlatSpec with Matchers {
       UB = List.fill(2)(1.0),
       ineqFunc = Some(ineqFunc),
       ineqLB = Some(List(-0.3, -1.0)),
-      solverConfig = DEConfig(NP = 10))
+      solverConfig = MOSConfig(NP = 10, step = 10, maxNumEval = 1000))
     val best = PopulationNode(List(-0.7, -0.7), request)
     best.objFnVal = Some(1.50)
     actor ! LocalSearch(probe.ref, slave, best, 0, request, Duration.Inf)
@@ -316,7 +316,7 @@ class MOSActorTest extends FlatSpec with Matchers {
       UB = List.fill(2)(1.0),
       ineqFunc = Some(ineqFunc),
       ineqUB = Some(List(0.0)),
-      solverConfig = DEConfig(NP = 10))
+      solverConfig = MOSConfig(NP = 10, step = 10, maxNumEval = 1000))
     val best = PopulationNode(List(-0.7, -0.7), request)
     best.objFnVal = None
     val node = PopulationNode(List(-0.19999999999999996, -0.7), request)
@@ -347,7 +347,7 @@ class MOSActorTest extends FlatSpec with Matchers {
       ineqFunc = Some(ineqFunc),
       ineqLB = Some(List(0.0, 0.0)),
       ineqUB = Some(List(0.0, 0.0)),
-      solverConfig = DEConfig(NP = 10))
+      solverConfig = MOSConfig(NP = 10, step = 10, maxNumEval = 1000))
     val best = PopulationNode(List(-0.7, -0.7), request)
     best.objFnVal = Some(1.5)
     val node = PopulationNode(List(-0.19999999999999996, -0.7), request)
