@@ -36,14 +36,13 @@ object MessageProtocol {
       key: Any,
       node: PopulationNode,
       request: Request,
-      to: Duration
+      timeout: Duration
     ) extends Message
 
   case class WorkLS (
       master: ActorRef,
       slave: ActorRef,
       best: PopulationNode,
-      d: Int,
       request: Request,
       timeout: Duration)
     extends Message
