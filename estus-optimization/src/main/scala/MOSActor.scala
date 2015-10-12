@@ -9,11 +9,11 @@ import scala.util.Failure
 
 case class MOSActor() extends Actor with ActorLogging {
 
-  /* Differential Evolution Nelder-Mead Variables */
+  /* Differential Evolution Variables */
 
-  case class ValueDENM (master: ActorRef, id: Any, node: PopulationNode)
+  case class ValueDE (master: ActorRef, id: Any, node: PopulationNode)
 
-  var EvalMapDENM = scala.collection.immutable.Map.empty[String, ValueDENM]
+  var EvalMapDE = scala.collection.immutable.Map.empty[String, ValueDE]
 
   /* Local Search 1 Variables */
 
@@ -80,32 +80,33 @@ case class MOSActor() extends Actor with ActorLogging {
     case Failure(cause) =>
       log.info(cause.toString)
 
-    /* Differential Evolution Nelder-Mead Messages */
+    /* Differential Evolution Messages */
 
-    case DENelderMead(master, slave, id, node, request, to) =>
+    case WorkDE(master, slave, id, node, request, to) =>
       val key = java.util.UUID.randomUUID.toString
-      val value = ValueDENM(master, id, node)
+      val value = ValueDE(master, id, node)
       val objFn = request.objFn(_: List[Double], request.additionalParam)
-      EvalMapDENM = EvalMapDENM + (key -> value)
+      EvalMapDE = EvalMapDE + (key -> value)
       slave ! Work(self, key, node.param, objFn, to)
 
     case Result(k, v) if k.isInstanceOf[String] =>
       val key = k.asInstanceOf[String]
       val objFnVal = v.toDouble
-      EvalMapDENM.get(key) match {
+      EvalMapDE.get(key) match {
         case Some(value) =>
           val node = value.node
           node.objFnVal = Some(objFnVal)
-          value.master ! UpdatePopulation(value.id, node)
+          value.master ! ResultMOS(value.id, node)
           value.master ! AddNumEval(1)
           value.master ! GimmeWork
         case _ =>
       }
-      EvalMapDENM = EvalMapDENM - key
+      EvalMapDE = EvalMapDE - key
 
     /* Local Search 1 Messages*/
 
-    case LocalSearch(master, slave, best, d, request, to) =>
+    case WorkLS(master, slave, best, d, request, to) =>
+      best.improve = Some(false)
       val uuid = java.util.UUID.randomUUID.toString
       val objFn = request.objFn(_: List[Double], request.additionalParam)
       val strategy = request.solverConfig.asInstanceOf[MOSConfig].constStrategy
@@ -117,7 +118,9 @@ case class MOSActor() extends Actor with ActorLogging {
         slave ! Work(self, key1, node1.param, objFn, to)
       } else {
         if (node1 == selectBetterNode(node1, best, strategy)) {
-          master ! UpdateBestNode(node1)
+          node1.d = Some(d)
+          node1.improve = Some(true)
+          master ! ResultMOS(None, node1)
           master ! GimmeWork
         } else {
           val node2 = getNode(best, getParam(best.param, d, 0.5 * best.SR.get, request), request)
@@ -128,7 +131,9 @@ case class MOSActor() extends Actor with ActorLogging {
             slave ! Work(self, key2, node2.param, objFn, to)
           } else {
             if (node2 == selectBetterNode(node2, best, strategy)) {
-              master ! UpdateBestNode(node2)
+              node2.d = Some(d)
+              node2.improve = Some(true)
+              master ! ResultMOS(None, node2)
               master ! GimmeWork
             } else {
               master ! GimmeWork
@@ -152,7 +157,9 @@ case class MOSActor() extends Actor with ActorLogging {
           val objFn = request.objFn(_: List[Double], request.additionalParam)
           val strategy = request.solverConfig.asInstanceOf[MOSConfig].constStrategy
           if (node1 == selectBetterNode(node1, best, strategy)) {
-            master ! UpdateBestNode(node1)
+            node1.d = Some(d)
+            node1.improve = Some(true)
+            master ! ResultMOS(None, node1)
             master ! AddNumEval(key._3)
             master ! GimmeWork
           } else {
@@ -165,7 +172,9 @@ case class MOSActor() extends Actor with ActorLogging {
             } else {
               /* IMPOSSIBLE CONDITION !!!
               if (node2 == selectBetterNode(node2, best, strategy)) {
-                master ! UpdateBestNode(node2)
+                node2.d = Some(d)
+                node2.improve = Some(true)
+                master ! ResultMOS(None, node2)
                 master ! AddNumEval(key._3)
                 master ! GimmeWork
               } else {
@@ -190,7 +199,9 @@ case class MOSActor() extends Actor with ActorLogging {
           val request = value.request
           val strategy = request.solverConfig.asInstanceOf[MOSConfig].constStrategy
           if (node == selectBetterNode(node, best, strategy)) {
-            master ! UpdateBestNode(node)
+            node.d = Some(value.d)
+            node.improve = Some(true)
+            master ! ResultMOS(None, node)
             master ! AddNumEval(key._3)
             master ! GimmeWork
           } else {

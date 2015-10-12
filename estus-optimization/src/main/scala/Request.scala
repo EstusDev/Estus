@@ -114,6 +114,8 @@ case class MOSConfig (
     NP: Int,
     step: Int,
     maxNumEval: Int,
+    F: Option[Double] = None,
+    Cr: Option[Double] = None,
     Ar: Double = 0.1, // Adaptive rate for Cr and Rho
     constStrategy: String = "rank",
     tolRel: Double = 1e-8,
@@ -133,6 +135,18 @@ case class MOSConfig (
   if (maxNumEval <= 0) {
     throw new IllegalArgumentException(
       s"maxNumEval must be > 0 (maxNumEval = $maxNumEval).")
+  }
+
+  F match {
+    case Some(f) if f <= 0 || f > 1 =>
+      throw new IllegalArgumentException(s"F must be in (0, 1] (F = $F).")
+    case _ =>
+  }
+
+  Cr match {
+    case Some(cr) if cr < 0 || cr > 1 =>
+      throw new IllegalArgumentException(s"Cr must be in [0, 1] (Cr = $Cr).")
+    case _ =>
   }
 
   if (Ar <= 0 || Ar > 1)

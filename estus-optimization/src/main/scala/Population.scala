@@ -18,6 +18,8 @@ case class PopulationNode(param: List[Double], request: Request) {
 
   var rho: Option[Double] = None
 
+  var d: Option[Int] = None
+
   var improve: Option[Boolean] = Some(false)
 
   var SR: Option[Double] = Some(0.5)

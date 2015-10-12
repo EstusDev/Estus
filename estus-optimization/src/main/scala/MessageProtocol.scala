@@ -30,7 +30,7 @@ object MessageProtocol {
 
   /* MOSActor Messages */
 
-  case class DENelderMead (
+  case class WorkDE (
       master: ActorRef,
       slave: ActorRef,
       key: Any,
@@ -39,7 +39,7 @@ object MessageProtocol {
       to: Duration
     ) extends Message
 
-  case class LocalSearch (
+  case class WorkLS (
       master: ActorRef,
       slave: ActorRef,
       best: PopulationNode,
@@ -48,9 +48,7 @@ object MessageProtocol {
       timeout: Duration)
     extends Message
 
-  case class UpdatePopulation (key: Any, node: PopulationNode) extends Message
-
-  case class UpdateBestNode (best: PopulationNode) extends Message
+  case class ResultMOS (key: Any, node: PopulationNode) extends Message
 
   case class AddNumEval (num: Int) extends Message
 

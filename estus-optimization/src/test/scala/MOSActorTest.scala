@@ -14,7 +14,7 @@ class MOSActorTest extends FlatSpec with Matchers {
 
 
   "A MOSActor" should
-    "[DENM] send back GimmeWork after ! WorkAvailable" in {
+    "[DE] send back GimmeWork after ! WorkAvailable" in {
     val system = ActorSystem()
     val probe = new TestProbe(system)
     val actor = system.actorOf(Props[MOSActor])
@@ -25,8 +25,8 @@ class MOSActorTest extends FlatSpec with Matchers {
   }
 
   it should
-    "[DENM] send back nothing " +
-      "when every DENelderMead request is timed out" in {
+    "[DE] send back nothing " +
+      "when every WorkDE request is timed out" in {
     val system = ActorSystem()
     val probe = new TestProbe(system)
     val actor = system.actorOf(Props[MOSActor])
@@ -43,14 +43,14 @@ class MOSActorTest extends FlatSpec with Matchers {
       solverConfig = MOSConfig(NP = 10, step = 10, maxNumEval = 1000))
     val node = PopulationNode(List(-0.7, -0.7), request)
     val fdur = Duration(200, java.util.concurrent.TimeUnit.MILLISECONDS)
-    actor ! DENelderMead(probe.ref, slave, "id", node, request, fdur)
+    actor ! WorkDE(probe.ref, slave, "id", node, request, fdur)
     probe.expectNoMsg(30 seconds)
     system.terminate()
   }
 
   it should
-    "[DENM] send back UpdatePopulation(key, objVal), AddNumEval(1) and GimmeWork " +
-      "after ! DENelderMead" in {
+    "[DE] send back ResultMOS(key, objVal), AddNumEval(1) and GimmeWork " +
+      "after ! WorkDE" in {
     val system = ActorSystem()
     val probe = new TestProbe(system)
     val actor = system.actorOf(Props[MOSActor])
@@ -63,8 +63,8 @@ class MOSActorTest extends FlatSpec with Matchers {
       UB = List.fill(2)(1.0),
       solverConfig = MOSConfig(NP = 10, step = 10, maxNumEval = 1000))
     val node = PopulationNode(List(-0.7, -0.7), request)
-    actor ! DENelderMead(probe.ref, slave, "id", node, request, Duration.Inf)
-    probe.expectMsg(30 seconds, UpdatePopulation("id", node))
+    actor ! WorkDE(probe.ref, slave, "id", node, request, Duration.Inf)
+    probe.expectMsg(30 seconds, ResultMOS("id", node))
     probe.expectMsg(30 seconds, AddNumEval(1))
     probe.expectMsg(30 seconds, GimmeWork)
     system.terminate()
@@ -72,7 +72,7 @@ class MOSActorTest extends FlatSpec with Matchers {
 
   it should
     "[LS1] send back nothing " +
-      "when every LocalSearch request is timed out" in {
+      "when every WorkLS request is timed out" in {
     val system = ActorSystem()
     val probe = new TestProbe(system)
     val actor = system.actorOf(Props[MOSActor])
@@ -89,14 +89,14 @@ class MOSActorTest extends FlatSpec with Matchers {
       solverConfig = MOSConfig(NP = 10, step = 10, maxNumEval = 1000))
     val best = PopulationNode(List(-0.7, -0.7), request)
     val fdur = Duration(200, java.util.concurrent.TimeUnit.MILLISECONDS)
-    actor ! LocalSearch(probe.ref, slave, best, 0, request, fdur)
+    actor ! WorkLS(probe.ref, slave, best, 0, request, fdur)
     probe.expectNoMsg(30 seconds)
     system.terminate()
   }
 
   // Path - [1/9]
   it should
-    "[LS1] send back UpdateBestNode(node), AddNumEval(1) and GimmeWork " +
+    "[LS1] send back ResultMOS(None, node), AddNumEval(1) and GimmeWork " +
       "when in Path [1/9]" in {
     val system = ActorSystem()
     val probe = new TestProbe(system)
@@ -113,8 +113,8 @@ class MOSActorTest extends FlatSpec with Matchers {
     best.objFnVal = Some(request.objFn(best.param, request.additionalParam))
     val node = PopulationNode(List(-0.85, -0.7), request)
     node.objFnVal = Some(request.objFn(node.param, request.additionalParam))
-    actor ! LocalSearch(probe.ref, slave, best, 0, request, Duration.Inf)
-    probe.expectMsg(30 seconds, UpdateBestNode(node))
+    actor ! WorkLS(probe.ref, slave, best, 0, request, Duration.Inf)
+    probe.expectMsg(30 seconds, ResultMOS(None, node))
     probe.expectMsg(30 seconds, AddNumEval(1))
     probe.expectMsg(30 seconds, GimmeWork)
     system.terminate()
@@ -122,7 +122,7 @@ class MOSActorTest extends FlatSpec with Matchers {
 
   // Path - [2/9]
   it should
-    "[LS1] send back UpdateBestNode(node), AddNumEval(2) and GimmeWork " +
+    "[LS1] send back ResultMOS(None, node), AddNumEval(2) and GimmeWork " +
       "when in Path [2/9]" in {
     val system = ActorSystem()
     val probe = new TestProbe(system)
@@ -139,8 +139,8 @@ class MOSActorTest extends FlatSpec with Matchers {
     best.objFnVal = Some(request.objFn(best.param, request.additionalParam))
     val node = PopulationNode(List(-0.19999999999999996, -0.7), request)
     node.objFnVal = Some(request.objFn(node.param, request.additionalParam))
-    actor ! LocalSearch(probe.ref, slave, best, 0, request, Duration.Inf)
-    probe.expectMsg(30 seconds, UpdateBestNode(node))
+    actor ! WorkLS(probe.ref, slave, best, 0, request, Duration.Inf)
+    probe.expectMsg(30 seconds, ResultMOS(None, node))
     probe.expectMsg(30 seconds, AddNumEval(2))
     probe.expectMsg(30 seconds, GimmeWork)
     system.terminate()
@@ -163,7 +163,7 @@ class MOSActorTest extends FlatSpec with Matchers {
       solverConfig = MOSConfig(NP = 10, step = 10, maxNumEval = 1000))
     val best = PopulationNode(List(-0.7, -0.7), request)
     best.objFnVal = Some(-9999.9)
-    actor ! LocalSearch(probe.ref, slave, best, 0, request, Duration.Inf)
+    actor ! WorkLS(probe.ref, slave, best, 0, request, Duration.Inf)
     probe.expectMsg(30 seconds, AddNumEval(2))
     probe.expectMsg(30 seconds, GimmeWork)
     system.terminate()
@@ -192,7 +192,7 @@ class MOSActorTest extends FlatSpec with Matchers {
     best.objFnVal = Some(1.50)
     val node = PopulationNode(List(-0.19999999999999996, -0.7), request)
     node.objFnVal = Some(request.objFn(node.param, request.additionalParam))
-    actor ! LocalSearch(probe.ref, slave, best, 0, request, Duration.Inf)
+    actor ! WorkLS(probe.ref, slave, best, 0, request, Duration.Inf)
     probe.expectMsg(30 seconds, AddNumEval(1))
     probe.expectMsg(30 seconds, GimmeWork)
     system.terminate()
@@ -200,7 +200,7 @@ class MOSActorTest extends FlatSpec with Matchers {
 
   // Path - [5/9]
   it should
-    "[LS1] send back UpdateBestNode(node) and GimmeWork " +
+    "[LS1] send back ResultMOS(None, node) and GimmeWork " +
       "when in Path [5/9]" in {
     val system = ActorSystem()
     val probe = new TestProbe(system)
@@ -226,15 +226,15 @@ class MOSActorTest extends FlatSpec with Matchers {
     best.objFnVal = None
     val node = PopulationNode(List(-0.85, -0.7), request)
     node.objFnVal = Some(request.objFn(node.param, request.additionalParam))
-    actor ! LocalSearch(probe.ref, slave, best, 0, request, Duration.Inf)
-    probe.expectMsg(30 seconds, UpdateBestNode(node))
+    actor ! WorkLS(probe.ref, slave, best, 0, request, Duration.Inf)
+    probe.expectMsg(30 seconds, ResultMOS(None, node))
     probe.expectMsg(30 seconds, GimmeWork)
     system.terminate()
   }
 
   // Path - [6/9]
   it should
-    "[LS1] send back UpdateBestNode(node), AddNumEval(1) and GimmeWork " +
+    "[LS1] send back ResultMOS(None, node), AddNumEval(1) and GimmeWork " +
       "when in Path [6/9]" in {
     val system = ActorSystem()
     val probe = new TestProbe(system)
@@ -254,8 +254,8 @@ class MOSActorTest extends FlatSpec with Matchers {
     best.objFnVal = Some(1.50)
     val node = PopulationNode(List(-0.19999999999999996, -0.7), request)
     node.objFnVal = Some(request.objFn(node.param, request.additionalParam))
-    actor ! LocalSearch(probe.ref, slave, best, 0, request, Duration.Inf)
-    probe.expectMsg(30 seconds, UpdateBestNode(node))
+    actor ! WorkLS(probe.ref, slave, best, 0, request, Duration.Inf)
+    probe.expectMsg(30 seconds, ResultMOS(None, node))
     probe.expectMsg(30 seconds, AddNumEval(1))
     probe.expectMsg(30 seconds, GimmeWork)
     system.terminate()
@@ -286,7 +286,7 @@ class MOSActorTest extends FlatSpec with Matchers {
       solverConfig = MOSConfig(NP = 10, step = 10, maxNumEval = 1000))
     val best = PopulationNode(List(-0.7, -0.7), request)
     best.objFnVal = Some(1.50)
-    actor ! LocalSearch(probe.ref, slave, best, 0, request, Duration.Inf)
+    actor ! WorkLS(probe.ref, slave, best, 0, request, Duration.Inf)
     probe.expectMsg(30 seconds, AddNumEval(1))
     probe.expectMsg(30 seconds, GimmeWork)
     system.terminate()
@@ -294,7 +294,7 @@ class MOSActorTest extends FlatSpec with Matchers {
 
   // Path - [8/9]
   it should
-    "[LS1] send back UpdateBestNode(node) and GimmeWork " +
+    "[LS1] send back ResultMOS(None, node) and GimmeWork " +
       "when in Path [8/9]" in {
     val system = ActorSystem()
     val probe = new TestProbe(system)
@@ -321,8 +321,8 @@ class MOSActorTest extends FlatSpec with Matchers {
     best.objFnVal = None
     val node = PopulationNode(List(-0.19999999999999996, -0.7), request)
     node.objFnVal = Some(request.objFn(node.param, request.additionalParam))
-    actor ! LocalSearch(probe.ref, slave, best, 0, request, Duration.Inf)
-    probe.expectMsg(30 seconds, UpdateBestNode(node))
+    actor ! WorkLS(probe.ref, slave, best, 0, request, Duration.Inf)
+    probe.expectMsg(30 seconds, ResultMOS(None, node))
     probe.expectMsg(30 seconds, GimmeWork)
     system.terminate()
   }
@@ -352,7 +352,7 @@ class MOSActorTest extends FlatSpec with Matchers {
     best.objFnVal = Some(1.5)
     val node = PopulationNode(List(-0.19999999999999996, -0.7), request)
     node.objFnVal = Some(request.objFn(node.param, request.additionalParam))
-    actor ! LocalSearch(probe.ref, slave, best, 0, request, Duration.Inf)
+    actor ! WorkLS(probe.ref, slave, best, 0, request, Duration.Inf)
     probe.expectMsg(30 seconds, GimmeWork)
     system.terminate()
   }
