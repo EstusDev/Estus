@@ -20,7 +20,7 @@ class PopulationTest extends FlatSpec with Matchers {
     ineqFunc = Some(ineqFunc),
     ineqLB = Some(List(0.0)),
     ineqUB = Some(List(2.0)),
-    solverConfig = DEConfig(NP = 10))
+    solverConfig = MOSConfig(NP = 10, stepSize = 10, maxNumEval = 100))
 
 
 

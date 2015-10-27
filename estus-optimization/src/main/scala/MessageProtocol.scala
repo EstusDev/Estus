@@ -61,10 +61,6 @@ object MessageProtocol {
 
   case class Start () extends Message
 
-  case class Initiate () extends Message
-
-  case class Evolve () extends Message
-
   case class Select (targetId: Any, node: PopulationNode) extends Message
 
   case class Converged () extends Message
