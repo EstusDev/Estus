@@ -8,6 +8,10 @@ case class Trace () {
 
   private var trace = List.empty[Double]
 
+  var converged = false
+
+  var convergeStep = 0
+
   def size: Int = trace.size
 
   def add (node: Double): Unit = trace = (node :: trace).sorted take 2
