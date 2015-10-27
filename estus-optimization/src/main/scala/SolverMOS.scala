@@ -51,6 +51,8 @@ class SolverMOS (
   def receive = {
 
     case Start =>
+      if (config.logTrace)
+        log.info(s"SolverMOS Started.")
       if (timeout.isFinite()) {
         val fdur = FiniteDuration(
           timeout.toMillis,
@@ -139,6 +141,19 @@ class SolverMOS (
     if (config.logTrace)
       log.info(solution.toString)
     journal.updateRow(key, solution)
+
+
+
+    import java.io.FileWriter
+    import java.io.File
+    import java.io.BufferedWriter
+
+    val file = new File(s"PerfTest/${request.description.get}.csv")
+    val bw = new BufferedWriter(new FileWriter(file))
+    bw.write(s"${request.description.get}, ${solution.objValue.get}, ${solution.numEval}, ${solution.timeElapsed}")
+    bw.close()
+
+
 
   }
 
