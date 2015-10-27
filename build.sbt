@@ -1,6 +1,6 @@
 lazy val commonSettings = Seq(
   organization := "com.estus.science",
-  scalaVersion := "2.11.6",
+  scalaVersion := "2.11.7",
   publishTo := Some(Resolver.file("file", new File(Path.userHome.getAbsolutePath + "/.m2/repository"))),
   scalacOptions ++= Seq("-unchecked", "-deprecation")
 )
