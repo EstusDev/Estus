@@ -37,6 +37,8 @@ case class EvalStack [T, A] () {
     }
   }
 
+  def reverse: Unit = stack = stack.reverse
+
   def empty: Unit = stack = List.empty[(T, A)]
 
 }

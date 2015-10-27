@@ -163,6 +163,10 @@ case class BenchmarkFunctions (D: Int, solverConfig: SolverConfig) {
     http://www.sfu.ca/~ssurjano/rosen.html
   */
   def rosenbrockFunc(param: List[Double], other: Option[Seq[Any]] = None): Double = {
+    if (param.size <= 1) {
+      throw new IllegalArgumentException(
+        s"D must be >= 2 (D = ${param.size}).")
+    }
     var v = 0.0
     for (i <- 0 until param.length-1)
       v += pow((1 - param(i)), 2.0) +

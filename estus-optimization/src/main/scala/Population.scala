@@ -18,8 +18,6 @@ case class PopulationNode(param: List[Double], request: Request) {
 
   var rho: Option[Double] = None
 
-  var improve: Option[Boolean] = None
-
   var DSR: Option[(Int, Double)] = None
 
   private def checkEqB: List[Double] = (request.eqB, request.eqErr, request.eqFunc) match {

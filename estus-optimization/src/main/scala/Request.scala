@@ -112,11 +112,16 @@ case class DEConfig (
 
 case class MOSConfig (
     NP: Int,
-    step: Int,
+    stepSize: Int,
     maxNumEval: Int,
     F: Option[Double] = None,
     Cr: Option[Double] = None,
     Ar: Double = 0.1, // Adaptive rate for Cr and Rho
+    Er: Double = 0.3, // Explore rate
+    xi: Double = 0.05, // Adaptive rate for DE participation
+    minDE: Double = 0.05, // Min participation rate for DE
+    minSR: Double = 1e-5, // Min Search Range for LS1
+    mutationStrategy: String = "classic",
     constStrategy: String = "rank",
     tolRel: Double = 1e-8,
     tolStep: Int = 500,
@@ -126,11 +131,11 @@ case class MOSConfig (
   if (NP <= 3)
     throw new IllegalArgumentException(s"NP must be > 3 (NP = $NP).")
 
-  if (step <= 0)
-    throw new IllegalArgumentException(s"step must be > 0 (step = $step).")
+  if (stepSize < 2)
+    throw new IllegalArgumentException(s"stepSize must be >= 2 (stepSize = $stepSize).")
 
-  if (step >= maxNumEval)
-    throw new IllegalArgumentException(s"step must be > maxNumEval (step = $step maxNumEval = $maxNumEval).")
+  if (stepSize >= maxNumEval)
+    throw new IllegalArgumentException(s"stepSize must be < maxNumEval (stepSize = $stepSize maxNumEval = $maxNumEval).")
 
   if (maxNumEval <= 0) {
     throw new IllegalArgumentException(
@@ -152,6 +157,18 @@ case class MOSConfig (
   if (Ar <= 0 || Ar > 1)
     throw new IllegalArgumentException(s"Ar must be in (0, 1] (Ar = $Ar).")
 
+  if (Er < 0 || Er > 1)
+    throw new IllegalArgumentException(s"Er must be in [0, 1] (Er = $Er).")
+
+  if (xi <= 0.0 || xi >= 1.0)
+    throw new IllegalArgumentException(s"xi must be in (0, 1) (xi = $xi).")
+
+  if (minDE <= 0.0 || minDE >= 1.0)
+    throw new IllegalArgumentException(s"minDE must be in (0, 1) (minDE = $minDE).")
+
+  if (minSR <= 0.0 || minSR >= 0.5)
+    throw new IllegalArgumentException(s"minSR must be in (0, 0.5) (minSR = $minSR).")
+
   if (tolRel < 0) {
     throw new IllegalArgumentException(
       s"tolRel must be >= 0 (tolRel = $tolRel).")
@@ -160,6 +177,14 @@ case class MOSConfig (
   if (tolStep <= 0) {
     throw new IllegalArgumentException(
       s"tolStep must be > 0 (tolStep = $tolRel).")
+  }
+
+  mutationStrategy match {
+    case "classic" =>
+    case "current-to-best" =>
+    case _ =>
+      throw new IllegalArgumentException(
+        "mutationStrategy must be one of (classic, current-to-best)")
   }
 
   constStrategy match {

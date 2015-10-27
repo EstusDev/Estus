@@ -30,14 +30,18 @@ object MessageProtocol {
 
   /* MOSActor Messages */
 
+  case class StartDE (budget: Int) extends Message
+
   case class WorkDE (
       master: ActorRef,
       slave: ActorRef,
       key: Any,
       node: PopulationNode,
       request: Request,
-      timeout: Duration
-    ) extends Message
+      timeout: Duration)
+    extends Message
+
+  case class StartLS1 (budget: Int) extends Message
 
   case class WorkLS (
       master: ActorRef,
@@ -51,7 +55,9 @@ object MessageProtocol {
 
   case class AddNumEval (num: Int) extends Message
 
-  /* FSM Messages */
+  case class NextStep () extends Message
+
+  /* Solver Messages */
 
   case class Start () extends Message
 
