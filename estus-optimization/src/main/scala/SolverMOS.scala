@@ -1,142 +1,145 @@
 package com.estus.optimization
 
-import akka.actor.{ActorLogging, FSM, ActorRef}
+import akka.actor._
+import com.estus.optimization.MessageProtocol._
 
-import scala.concurrent.duration.Duration
-import scala.util.Random
+import scala.concurrent.duration.{FiniteDuration, Duration}
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.util.Failure
 
 
-class SolverMOS(
+class SolverMOS (
     key: String,
     request: Request,
     workerRouter: ActorRef,
+    nRouter: Int,
     journal: Journal,
     timeout: Duration = Duration.Inf,
     timeoutObjFn: Duration = Duration.Inf)
-  extends FSM[State, Data]
+  extends Actor
     with ActorLogging {
 
   private val startTime = System.currentTimeMillis()
   private val config = request.solverConfig.asInstanceOf[MOSConfig]
-
   private val pop = Population(config.NP)
+  private val popExplore = Population(config.NP)
   private val trace = Trace()
-
-  private var stepSeq = List.empty[Step]
-  private var bestNode: PopulationNode = _
-  private var (fMu, crMu) = (0.5, 0.5)
-  private var (numEval, convergeStep) = (0, 0)
+  private val stepSeq = StepSeq(Step(0, config.stepSize/2, config.stepSize, request))
+  private var numEval = 0
   private var converged = false
+  private var status = ""
+
+  // Initiation Actor, DE Actor and LS1 Actor
+  private lazy val ls1Actor = context.system.actorOf(Props(new LS1Actor(
+    pop, stepSeq, trace,
+    self, workerRouter, nRouter,
+    request, timeoutObjFn)))
+
+  private lazy val deActor = context.system.actorOf(Props(new DEActor(
+    pop, popExplore, stepSeq, trace,
+    self, ls1Actor, workerRouter, nRouter,
+    request, timeoutObjFn)))
+  ls1Actor ! deActor
+
+  private lazy val initActor = context.system.actorOf(Props(new INITActor(
+    pop, popExplore, stepSeq, trace,
+    self, deActor, workerRouter, nRouter,
+    request, timeoutObjFn)))
 
 
 
-}
+  def receive = {
 
-
-
-trait EvalTask
-
-case class DETask (r0: Int) extends EvalTask
-
-case class LS1Task (d: Int) extends EvalTask
-
-case class Step (
-    id: Int,
-    dePi: Int,
-    numEval: Int,
-    D: Int,
-    NP: Int)
-  extends StackKey[(Int, String)] {
-
-  // Current Participation of DE and LS1
-  object Pi {
-    private val de = dePi
-    private val ls1 = numEval - de
-    def apply (): List[Int] = List(de, ls1)
-  }
-
-  // Average Fitness Increments of DE and LS1
-  object Sigma {
-    private var de = List.empty[Double]
-    private var ls1 = List.empty[Double]
-    def deAdd (s: Double): Unit = de = s :: de
-    def ls1Add (s: Double): Unit = ls1 = s :: ls1
-    // Assume increments are positive
-    def apply (): List[Double] = {
-      (de.nonEmpty, ls1.nonEmpty) match {
-        case (true, true) =>
-          List(de.sum/de.size, ls1.sum/ls1.size).map(_.abs)
-        case (true, false) =>
-          List(de.sum/de.size, 0.0).map(_.abs)
-        case (false, true) =>
-          List(0.0, ls1.sum/ls1.size).map(_.abs)
-        case _ =>
-          List(0.0, 0.0)
+    case Start =>
+      if (timeout.isFinite()) {
+        val fdur = FiniteDuration(
+          timeout.toMillis,
+          java.util.concurrent.TimeUnit.MILLISECONDS)
+        context.system.scheduler.scheduleOnce(fdur, self, Timeout)
       }
-    }
+      initActor ! Start
+
+    case AddNumEval(num) =>
+      numEval += num
+
+    case NextStep if numEval < config.maxNumEval =>
+      val senderActor = sender()
+      if (config.logTrace) {
+        val Q = stepSeq.seq.last.Quality()
+        val P = stepSeq.seq.last.Pi().map(_.toDouble)
+        val Pr = if (P.sum == 0.0)
+          List(0.0, 0.0)
+        else
+          List(P.head/P.sum, P.last/P.sum)
+        log.info(s"Step ${stepSeq.seq.last.id}: " +
+          s"Num of Evals: $numEval, " +
+          s"Best Value: ${stepSeq.seq.last.bestNode.objFnVal}, " +
+          s"Quality: $Q, " +
+          s"Participation: $P, " +
+          s"Participation Rate: $Pr, " +
+          s"Time Elapsed: ${System.currentTimeMillis() - startTime}")
+      }
+      val numEvalLeft = if (config.stepSize <= config.maxNumEval - numEval) {
+        config.stepSize
+      } else {
+        config.maxNumEval - numEval
+      }
+      stepSeq.seq = stepSeq.seq :+
+        stepSeq.seq.last.generateNextStep(numEvalLeft, config.xi, config.minDE)
+      senderActor ! NextStep
+
+    case Converged => // Converged
+      converged = true
+      status = Converged.toString()
+      context stop self
+      context become shuttingDown
+
+    case NextStep => // Not Converged
+      converged = false
+      status = NotConverged.toString()
+      context stop self
+      context become shuttingDown
+
+    case Timeout => // Timed out
+      converged = false
+      status = Timeout.toString()
+      context stop self
+      context become shuttingDown
+
+    case Failure(cause) => // Failed
+      converged = false
+      status = cause.toString()
+      context stop self
+      context become shuttingDown
+
+    case mssg: Any =>
+      if (config.logTrace)
+        log.info(s"SolverMOS received an unknown message: $mssg")
+
   }
 
-  // Number of Fitness Increments of DE and LS1
-  object Gamma {
-    private var de = 0
-    private var ls1 = 0
-    def deAdd (): Unit = de += 1
-    def ls1Add (): Unit = ls1 += 1
-    def apply (): List[Int] = List(de, ls1)
+  def shuttingDown: Receive = {
+    case mssg: Any =>
+      if (config.logTrace)
+        log.info(s"SolverMOS is shutting down. $mssg will not be processed")
   }
 
-  // Quality of DE and LS1
-  object Quality {
-    def apply (): List[Double] = {
-      val sigma = Sigma()
-      val gamma = Gamma().map(_.toDouble)
-      val sigmaSign = sigma.reduce((x, y) => x - y).signum
-      val gammaSign = gamma.reduce((x, y) => x - y).signum
-      if (sigmaSign == gammaSign)
-        sigma
-      else
-        gamma
-    }
-  }
+  override def postStop(): Unit = {
+    context stop initActor
+    context stop deActor
+    context stop ls1Actor
+    val solution = Solution(
+      objValue = stepSeq.seq.last.bestNode.objFnVal,
+      param = stepSeq.seq.last.bestNode.param,
+      isFeasible = stepSeq.seq.last.bestNode.constVal <= 0.0,
+      isConverged = converged,
+      numEval = numEval,
+      status = status,
+      timeElapsed = System.currentTimeMillis() - startTime)
+    if (config.logTrace)
+      log.info(solution.toString)
+    journal.updateRow(key, solution)
 
-  // EvalStack
-  val evalStack = generateEvalStack()
-
-  def generateEvalStack (): EvalStack[KeyType, EvalTask] = {
-    val evalStack = EvalStack[KeyType, EvalTask]()
-    val p = Pi()
-    var randInd = List.empty[Int]
-    (0 until p.last).foreach(i => {
-      if (i % D == 0)
-        randInd = Random.shuffle(0 until D).toList
-      val key = (id, java.util.UUID.randomUUID.toString)
-      evalStack.push((key, LS1Task(randInd(i % D))))
-    })
-    (0 until p.head).foreach(i => {
-      if (i % NP == 0)
-        randInd = Random.shuffle(0 until NP).toList
-      val key = (id, java.util.UUID.randomUUID.toString)
-      evalStack.push((key, DETask(randInd(i % NP))))
-    })
-    evalStack
-  }
-
-  // Dynamic Participation Function
-  def generateNextStep (numEvalLeft: Int, xi: Double = 0.05): Step = {
-    val Q = Quality()
-    val P = Pi()
-    val (iBest, iRest) = if (Q.head >= Q.last)
-      (0, 1)
-    else
-      (1, 0)
-    // Participation Decrement of the Weak Technique
-    val eta = (xi * (Q(iBest) - Q(iRest)) / Q(iBest) * P(iRest)).toInt
-    Step (
-      id = id + 1,
-      dePi = P.head + eta,
-      numEval = if (numEvalLeft > numEval) numEval else numEvalLeft,
-      D = D,
-      NP = NP)
   }
 
 }
