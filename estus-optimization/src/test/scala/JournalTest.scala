@@ -10,7 +10,7 @@ class JournalTest extends FlatSpec with Matchers {
   import scala.reflect.io.Path
 
   val journal = Journal()
-  val config = DEConfig(NP = 100)
+  val config = MOSConfig(NP = 100, stepSize = 10, maxNumEval = 100)
   val request = BenchmarkFunctions(2, config).ackleyRequest
   val solution = Solution(
     objValue = Some(0.0),

@@ -40,84 +40,14 @@ case class Request (
 
 
 
-case class DEConfig (
-    NP: Int,
-    F: Option[Double] = None,
-    Cr: Option[Double] = None,
-    Ar: Double = 0.1, // Adaptive rate for F, Cr and Rho
-    Er: Double = 0.3, // Explore rate
-    mutationStrategy: String = "classic",
-    constStrategy: String = "rank",
-    tolRel: Double = 1e-8,
-    tolStep: Int = 500,
-    maxNumEval: Int = 3000000,
-    logTrace: Boolean = false)
-  extends SolverConfig {
-
-  if (NP <= 3)
-    throw new IllegalArgumentException(s"NP must be > 3 (NP = $NP).")
-
-  F match {
-    case Some(f) if f <= 0 || f > 1 =>
-      throw new IllegalArgumentException(s"F must be in (0, 1] (F = $F).")
-    case _ =>
-  }
-
-  Cr match {
-    case Some(cr) if cr < 0 || cr > 1 =>
-      throw new IllegalArgumentException(s"Cr must be in [0, 1] (Cr = $Cr).")
-    case _ =>
-  }
-
-  if (Ar <= 0 || Ar > 1)
-    throw new IllegalArgumentException(s"Ar must be in (0, 1] (Ar = $Ar).")
-
-  if (Er < 0 || Er > 1)
-    throw new IllegalArgumentException(s"Er must be in [0, 1] (Er = $Er).")
-
-  if (tolRel < 0) {
-    throw new IllegalArgumentException(
-      s"tolRel must be >= 0 (tolRel = $tolRel).")
-  }
-
-  if (tolStep <= 0) {
-    throw new IllegalArgumentException(
-      s"tolStep must be > 0 (tolStep = $tolRel).")
-  }
-
-  if (maxNumEval <= 0) {
-    throw new IllegalArgumentException(
-      s"maxNumEval must be > 0 (maxNumEval = $maxNumEval).")
-  }
-
-  mutationStrategy match {
-    case "classic" =>
-    case "current-to-best" =>
-    case _ =>
-      throw new IllegalArgumentException(
-        "mutationStrategy must be one of (classic, current-to-best)")
-  }
-
-  constStrategy match {
-    case "rank" =>
-    case "dominance" =>
-    case _ =>
-      throw new IllegalArgumentException(
-        "constStrategy must be one of (rank, dominance)")
-  }
-
-}
-
-
-
 case class MOSConfig (
     NP: Int,
     stepSize: Int,
     maxNumEval: Int,
     F: Option[Double] = None,
     Cr: Option[Double] = None,
-    Ar: Double = 0.1, // Adaptive rate for Cr and Rho
-    Er: Double = 0.3, // Explore rate
+    Ar: Double = 0.1, // Adaptive rate for F, Cr and Rho
+    Er: Double = 0.3, // Population Explore rate
     xi: Double = 0.05, // Adaptive rate for DE participation
     minDE: Double = 0.05, // Min participation rate for DE
     minSR: Double = 1e-5, // Min Search Range for LS1
@@ -132,10 +62,12 @@ case class MOSConfig (
     throw new IllegalArgumentException(s"NP must be > 3 (NP = $NP).")
 
   if (stepSize < 2)
-    throw new IllegalArgumentException(s"stepSize must be >= 2 (stepSize = $stepSize).")
+    throw new IllegalArgumentException(s"stepSize must be >= 2 " +
+      s"(stepSize = $stepSize).")
 
   if (stepSize >= maxNumEval)
-    throw new IllegalArgumentException(s"stepSize must be < maxNumEval (stepSize = $stepSize maxNumEval = $maxNumEval).")
+    throw new IllegalArgumentException(s"stepSize must be < maxNumEval " +
+      s"(stepSize = $stepSize maxNumEval = $maxNumEval).")
 
   if (maxNumEval <= 0) {
     throw new IllegalArgumentException(
