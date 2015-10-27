@@ -45,8 +45,8 @@ case class MOSActor() extends Actor with ActorLogging {
     d: Int,
     sr: Double,
     request: Request): List[Double] = {
-    // val p = base(d) + factor * (request.UB(d) - request.LB(d)) match {
-    val p = base(d) + sr match {
+    val p = base(d) + sr * (request.UB(d) - request.LB(d)) match {
+    //val p = base(d) + sr match {
       case v if v < request.LB(d) =>
         base(d) - 0.5 * (base(d) - request.LB(d))
       case v if v > request.UB(d) =>
@@ -65,8 +65,7 @@ case class MOSActor() extends Actor with ActorLogging {
     node.F = base.F
     node.Cr = base.Cr
     node.rho = base.rho
-    node.improve = Some(false)
-    node.DSR = node.DSR
+    node.DSR = base.DSR
     node
   }
 
@@ -79,6 +78,9 @@ case class MOSActor() extends Actor with ActorLogging {
 
     case Failure(cause) =>
       log.info(cause.toString)
+      context.parent ! GimmeWork
+
+    case GimmeWork => // GimmeWork is Ignored
 
     /* Differential Evolution Messages */
 
@@ -119,7 +121,6 @@ case class MOSActor() extends Actor with ActorLogging {
         slave ! Work(self, key1, node1.param, objFn, to)
       } else {
         if (node1 == selectBetterNode(node1, best, strategy)) {
-          node1.improve = Some(true)
           master ! ResultMOS(None, node1)
           master ! GimmeWork
         } else {
@@ -131,7 +132,6 @@ case class MOSActor() extends Actor with ActorLogging {
             slave ! Work(self, key2, node2.param, objFn, to)
           } else {
             if (node2 == selectBetterNode(node2, best, strategy)) {
-              node2.improve = Some(true)
               master ! ResultMOS(None, node2)
               master ! GimmeWork
             } else {
@@ -157,7 +157,6 @@ case class MOSActor() extends Actor with ActorLogging {
           val objFn = request.objFn(_: List[Double], request.additionalParam)
           val strategy = request.solverConfig.asInstanceOf[MOSConfig].constStrategy
           if (node1 == selectBetterNode(node1, best, strategy)) {
-            node1.improve = Some(true)
             master ! ResultMOS(None, node1)
             master ! AddNumEval(key._3)
             master ! GimmeWork
@@ -197,7 +196,6 @@ case class MOSActor() extends Actor with ActorLogging {
           val request = value.request
           val strategy = request.solverConfig.asInstanceOf[MOSConfig].constStrategy
           if (node == selectBetterNode(node, best, strategy)) {
-            node.improve = Some(true)
             master ! ResultMOS(None, node)
             master ! AddNumEval(key._3)
             master ! GimmeWork
@@ -209,6 +207,8 @@ case class MOSActor() extends Actor with ActorLogging {
       }
       EvalMapLS1 = EvalMapLS1 - key
 
+    case mssg: Any =>
+      log.info(s"MOSActor received an unknown message: $mssg")
   }
 
 }
