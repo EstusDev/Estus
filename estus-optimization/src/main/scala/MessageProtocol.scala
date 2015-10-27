@@ -65,7 +65,7 @@ object MessageProtocol {
 
   case class Converged () extends Message
 
-  case class NotConverged() extends Message
+  case class NotConverged () extends Message
 
   case class Timeout () extends Message
 
