@@ -18,6 +18,8 @@ case class PopulationNode(param: List[Double], request: Request) {
 
   var rho: Option[Double] = None
 
+  var DSR: Option[(Int, Double)] = None
+
   private def checkEqB: List[Double] = (request.eqB, request.eqErr, request.eqFunc) match {
     case (Some(b), Some(e), Some(f)) => f(param).zip(b).map(x => abs(x._1 - x._2) - e)
     case _ => List(0.0)
@@ -101,7 +103,7 @@ case class Population (NP: Int) {
       } else { // Pareto-dominates
         if (node1.constVec.map(max(_, 0.0)).
           zip(node2.constVec.map(max(_, 0.0))).
-          exists(x => x._2 >= x._1))
+          exists(x => x._2 > x._1))
           node1
         else
           node2

@@ -1,7 +1,7 @@
 package com.estus.optimization
 
-import akka.actor.{Stash, ActorLogging, FSM, ActorRef}
-import scala.concurrent.duration.FiniteDuration
+import akka.actor.{ActorLogging, FSM, ActorRef}
+import scala.concurrent.duration.{FiniteDuration, Duration}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.math._
 import scala.util.{Failure, Random}
@@ -15,18 +15,18 @@ class SolverDE (
     request: Request,
     workerRouter: ActorRef,
     journal: Journal,
-    timeout: Option[FiniteDuration] = None)
+    timeout: Duration = Duration.Inf,
+    timeoutObjFn: Duration = Duration.Inf)
   extends FSM[State, Data]
     with ActorLogging
-    with Stash
     with StackKey[(Boolean, Option[Int], String)] {
 
   private val startTime = System.currentTimeMillis()
-  private val config = request.solverConfig.asInstanceOf[DiffEvoConfig]
+  private val config = request.solverConfig.asInstanceOf[DEConfig]
 
   private val pop = Population(config.NP)
   private val popExplore = Population(config.NP)
-  private val evalStack = EvalStack[KeyType]()
+  private val evalStack = EvalStack[KeyType, PopulationNode]()
   private var evalMap = collection.immutable.Map.empty[KeyType, PopulationNode]
   private val trace = Trace()
 
@@ -40,10 +40,11 @@ class SolverDE (
   when(InitiationState) {
 
     case Event(Start, _) =>
-      timeout match {
-        case Some(t) => // Set timeout
-          context.system.scheduler.scheduleOnce(t, self, Timeout)
-        case _ =>
+      if (timeout.isFinite) {
+        val fdur = FiniteDuration(
+          timeout.toMillis,
+          java.util.concurrent.TimeUnit.MILLISECONDS)
+        context.system.scheduler.scheduleOnce(fdur, self, Timeout)
       }
       self ! Initiate
       stay ()
@@ -121,11 +122,11 @@ class SolverDE (
           bestNode = x._1
         pop.add(x._1)
       })
-      goto(EvolutionDEState)
+      goto(EvolutionState)
 
   }
 
-  when (EvolutionDEState) {
+  when (EvolutionState) {
 
     case Event(Evolve, _) if popExplore.size < config.NP && flagExplore =>
       // Use Nelder-Mead method to explore population space
@@ -340,7 +341,7 @@ class SolverDE (
           val objFn = n._2.request.objFn(
             _: List[Double],
             n._2.request.additionalParam)
-          sender ! Work(self, key = n._1, param = n._2.param, fn = objFn)
+          sender ! Work(self, key = n._1, param = n._2.param, fn = objFn, timeoutObjFn)
         case _ => // Do nothing
       }
       stay()
@@ -364,7 +365,7 @@ class SolverDE (
             else
               popExplore.replaceWorst(node, config.constStrategy)
           }
-        case EvolutionDEState =>
+        case EvolutionState =>
           if (keyStack._1) { // pop: evolving phrase
             keyStack._2 match {
               case Some(i) =>
@@ -398,7 +399,7 @@ class SolverDE (
   }
 
   onTransition {
-    case InitiationState -> EvolutionDEState =>
+    case InitiationState -> EvolutionState =>
       self ! Evolve
   }
 
@@ -426,3 +427,11 @@ class SolverDE (
   }
 
 }
+
+/*** FSM - States ***/
+sealed trait State
+case object InitiationState extends State
+case object EvolutionState extends State
+
+/*** FSM - Data ***/
+final case class Data()

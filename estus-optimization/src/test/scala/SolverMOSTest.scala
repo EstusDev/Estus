@@ -5,7 +5,8 @@ import org.scalatest.{FlatSpec, Matchers}
 import scala.concurrent.duration.Duration
 
 
-class SolverDETest extends FlatSpec with Matchers {
+
+class SolverMOSTest extends FlatSpec with Matchers {
 
   import akka.actor.{ActorSystem, Props}
   import akka.routing.RoundRobinPool
@@ -15,22 +16,26 @@ class SolverDETest extends FlatSpec with Matchers {
   val system = ActorSystem()
   val workerRouter = system.actorOf(RoundRobinPool(ds.size).props(Props[ObjFnActor]))
   val journal = Journal()
-  val config = DEConfig(
+  val config = MOSConfig(
     NP = 50,
+    stepSize = 3000000/100,
+    maxNumEval = 3000000,
     F = None,
     Cr = None,
     Er = 0.3,
     Ar = 0.1,
+    xi = 0.05,
+    minDE = 0.05,
+    minSR = 1e-5,
     mutationStrategy = "current-to-best",
     constStrategy = "rank",
     tolRel = 1e-8,
     tolStep = 1000,
-    maxNumEval = 3000000,
     logTrace = false)
 
 
 
-  "A SolverDE" should
+  "A SolverMOS" should
     "produce global minimum 0.0 +- 1e-3 at [0.0 +- 1e-3]^D in 3D seconds" +
       " for a Ackley's Function" in {
     val keys: List[String] = ds.map(D => {
@@ -38,10 +43,11 @@ class SolverDETest extends FlatSpec with Matchers {
       val request = BenchmarkFunctions(D, configNew).ackleyRequest
       val key = journal.registerRow(request)
       system.actorOf(
-        Props(new SolverDE(
+        Props(new SolverMOS(
           key,
           request,
           workerRouter,
+          ds.size,
           journal,
           Duration(3*D, java.util.concurrent.TimeUnit.SECONDS),
           Duration(200, java.util.concurrent.TimeUnit.MILLISECONDS)
@@ -72,10 +78,11 @@ class SolverDETest extends FlatSpec with Matchers {
       val request = BenchmarkFunctions(D, configNew).rastriginRequest
       val key = journal.registerRow(request)
       system.actorOf(
-        Props(new SolverDE(
+        Props(new SolverMOS(
           key,
           request,
           workerRouter,
+          ds.size,
           journal,
           Duration(3*D, java.util.concurrent.TimeUnit.SECONDS),
           Duration(200, java.util.concurrent.TimeUnit.MILLISECONDS)
@@ -105,10 +112,11 @@ class SolverDETest extends FlatSpec with Matchers {
       val request = BenchmarkFunctions(D, config).schwefelRequest
       val key = journal.registerRow(request)
       system.actorOf(
-        Props(new SolverDE(
+        Props(new SolverMOS(
           key,
           request,
           workerRouter,
+          ds.size,
           journal,
           Duration(3*D, java.util.concurrent.TimeUnit.SECONDS),
           Duration(200, java.util.concurrent.TimeUnit.MILLISECONDS)
@@ -138,10 +146,11 @@ class SolverDETest extends FlatSpec with Matchers {
       val request = BenchmarkFunctions(D, config).sphereRequest
       val key = journal.registerRow(request)
       system.actorOf(
-        Props(new SolverDE(
+        Props(new SolverMOS(
           key,
           request,
           workerRouter,
+          ds.size,
           journal,
           Duration(3*D, java.util.concurrent.TimeUnit.SECONDS),
           Duration(200, java.util.concurrent.TimeUnit.MILLISECONDS)
@@ -171,10 +180,11 @@ class SolverDETest extends FlatSpec with Matchers {
       val request = BenchmarkFunctions(D, config).ellipsoidRequest
       val key = journal.registerRow(request)
       system.actorOf(
-        Props(new SolverDE(
+        Props(new SolverMOS(
           key,
           request,
           workerRouter,
+          ds.size,
           journal,
           Duration(3*D, java.util.concurrent.TimeUnit.SECONDS),
           Duration(200, java.util.concurrent.TimeUnit.MILLISECONDS)
@@ -204,10 +214,11 @@ class SolverDETest extends FlatSpec with Matchers {
       val request = BenchmarkFunctions(D, config).zakharovRequest
       val key = journal.registerRow(request)
       system.actorOf(
-        Props(new SolverDE(
+        Props(new SolverMOS(
           key,
           request,
           workerRouter,
+          ds.size,
           journal,
           Duration(3*D, java.util.concurrent.TimeUnit.SECONDS),
           Duration(200, java.util.concurrent.TimeUnit.MILLISECONDS)
@@ -237,10 +248,11 @@ class SolverDETest extends FlatSpec with Matchers {
       val request = BenchmarkFunctions(D, config).rosenbrockRequest
       val key = journal.registerRow(request)
       system.actorOf(
-        Props(new SolverDE(
+        Props(new SolverMOS(
           key,
           request,
           workerRouter,
+          ds.size,
           journal,
           Duration(3*D, java.util.concurrent.TimeUnit.SECONDS),
           Duration(200, java.util.concurrent.TimeUnit.MILLISECONDS)
@@ -269,10 +281,11 @@ class SolverDETest extends FlatSpec with Matchers {
     val request = BenchmarkFunctions(2, config).debRequest
     val key = journal.registerRow(request)
     system.actorOf(
-      Props(new SolverDE(
+      Props(new SolverMOS(
         key,
         request,
         workerRouter,
+        ds.size,
         journal,
         Duration(2, java.util.concurrent.TimeUnit.SECONDS),
         Duration(200, java.util.concurrent.TimeUnit.MILLISECONDS)
