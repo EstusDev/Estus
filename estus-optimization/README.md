@@ -1,4 +1,4 @@
-# Estus - Numerical Optimization
+# Numerical Optimization
 
 ## Modules
 
