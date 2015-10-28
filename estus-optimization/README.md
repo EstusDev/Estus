@@ -1,1 +1,1 @@
-# Estus - Mathematical Optimization
+# Estus - Numerical Optimization
