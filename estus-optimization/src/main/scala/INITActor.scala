@@ -115,22 +115,18 @@ class INITActor (
     case GimmeWork =>
       active = false
       // Opposite-based exploration finishes, now sort and take the bests
-      val popTmp = pop
-      val popUnion = popTmp.merge(popExplore)
-      popTmp.empty
+      val popUnion = pop.merge(popExplore)
       val wfv = popUnion.worstFeasibleVal.getOrElse(0.0)
-      (popUnion.p.values.toList.sortBy(node => node.objFnVal match {
-        case Some (v) =>
+      (popUnion.p.toSeq.sortBy(n => n._2.objFnVal match {
+        case Some(v) =>
           v
         case _ =>
-          node.constVal + wfv
-      }) take config.NP).zipWithIndex.foreach(x => {
+          n._2.constVal + wfv
+      }).map(_._2) take config.NP).zipWithIndex.foreach(x => {
         if (x._2 == 0)
           stepSeq.seq.last.bestNode = x._1
-        popTmp.add(x._1)
+        pop.update(x._2, x._1)
       })
-      pop.p = popTmp.p
-      pop.keys = popTmp.keys
       if (stepSeq.seq.last.bestNode.objFnVal.nonEmpty)
         trace.add(stepSeq.seq.last.bestNode.objFnVal.get)
       deActor ! StartDE(stepSeq.seq.last.Pi().head)

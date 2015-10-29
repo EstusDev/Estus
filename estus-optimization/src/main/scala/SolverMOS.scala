@@ -63,6 +63,8 @@ class SolverMOS (
 
     case AddNumEval(num) =>
       numEval += num
+      if (numEval >= config.maxNumEval)
+        self ! NotConverged
 
     case NextStep if numEval < config.maxNumEval =>
       val senderActor = sender()
@@ -96,7 +98,7 @@ class SolverMOS (
       context stop self
       context become shuttingDown
 
-    case NextStep => // Not Converged
+    case NextStep | NotConverged => // Not Converged
       converged = false
       status = NotConverged.toString()
       context stop self
@@ -141,20 +143,6 @@ class SolverMOS (
     if (config.logTrace)
       log.info(solution.toString)
     journal.updateRow(key, solution)
-
-
-
-    import java.io.FileWriter
-    import java.io.File
-    import java.io.BufferedWriter
-
-    val file = new File(s"PerfTest/${request.description.get}.csv")
-    val bw = new BufferedWriter(new FileWriter(file))
-    bw.write(s"${request.description.get}, ${solution.objValue.get}, ${solution.numEval}, ${solution.timeElapsed}")
-    bw.close()
-
-
-
   }
 
 }

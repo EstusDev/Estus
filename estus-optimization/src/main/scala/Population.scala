@@ -41,50 +41,54 @@ case class PopulationNode(param: List[Double], request: Request) {
 
 case class Population (NP: Int) {
 
-  var p = collection.immutable.Map.empty[String, PopulationNode]
-
-  var keys = List.empty[String]
+  val p = collection.mutable.Map.empty[String, PopulationNode]
 
   def size: Int = p.size
 
-  def get (i: Int): Option[PopulationNode] = p.get(keys(i))
-
-  def add (node: PopulationNode): Unit = {
-    if (p.size < NP) {
-      val uuid = java.util.UUID.randomUUID.toString
-      p = p + (uuid -> node)
-      keys = uuid :: keys
-    }
+  def get (i: Int): Option[PopulationNode] = {
+    if (i < p.size)
+      Some(p(p.keys.toList(i)))
+    else
+      None
   }
 
-  def update (key: Int, node: PopulationNode): Unit = {
-    if (key < p.size)
-      p = (p - keys(key)) + (keys(key) -> node)
+  def add (node: PopulationNode): Unit = {
+    if (p.size < NP)
+      p(java.util.UUID.randomUUID.toString) = node
+  }
+
+  def update (i: Int, node: PopulationNode): Unit = {
+    if (i < p.size)
+      p(p.keys.toList(i)) = node
   }
 
   def replaceWorst (node: PopulationNode, constStrategy: String): Unit = {
-    val wfv = worstFeasibleVal.getOrElse(0.0)
-    val keyWfv = p.maxBy(node => node._2.objFnVal match {
-      case Some (v) => v
-      case _ => node._2.constVal + wfv
-    })._1
-    val nodeSelected = selectBetterNode(p.get(keyWfv).get, node, constStrategy)
-    p = (p - keyWfv) + (keyWfv -> nodeSelected)
+    if (p.nonEmpty) {
+      val wfv = worstFeasibleVal.getOrElse(0.0)
+      val keyWfv = p.maxBy(n => n._2.objFnVal match {
+        case Some (v) => v
+        case _ => n._2.constVal + wfv
+      })._1
+      val nodeSelected = selectBetterNode(p.getOrElse(keyWfv, node), node, constStrategy)
+      p(keyWfv) = nodeSelected
+    }
   }
 
-  def empty: Unit = {
-    p = collection.immutable.Map.empty[String, PopulationNode]
-    keys = List.empty[String]
-  }
+  def empty (): Unit = p.clear()
 
   def merge (pNew: Population): Population = {
     val popUnion = new Population(NP + pNew.NP)
-    popUnion.p = p ++ pNew.p
-    popUnion.keys = keys ++ pNew.keys
+    p.foreach(n => popUnion.p(n._1) = n._2)
+    pNew.p.foreach(n => popUnion.p(n._1) = n._2)
     popUnion
   }
 
-  def worstFeasibleVal: Option[Double] = p.values.maxBy(_.objFnVal).objFnVal
+  def worstFeasibleVal: Option[Double] = {
+    if (p.nonEmpty)
+      p.values.maxBy(_.objFnVal).objFnVal
+    else
+      None
+  }
 
   def selectBetterNode(
     node1: PopulationNode,
