@@ -6,7 +6,7 @@ import akka.actor.{Props, ActorRef, ActorLogging, Actor}
 import akka.routing.RoundRobinPool
 
 import scala.concurrent.duration.Duration
-import scala.util.{Random, Success, Try, Failure}
+import scala.util.Random
 
 
 
@@ -41,12 +41,11 @@ class LS1Actor (
       deActor = actor
 
     case StartLS1(budget) =>
-      r0 = Try(pop.keys.indexOf(
-        pop.p.filter(_._2 == stepSeq.seq.last.bestNode).keys.head)) match {
-        case Success(i) =>
-          i
-        case Failure(e) =>
-          Random.nextInt(request.D)
+      r0 = pop.p.filter(_._2 == stepSeq.seq.last.bestNode).keys.headOption match {
+        case Some(k) =>
+          pop.p.keys.zipWithIndex.filter(_._1 == k).head._2
+        case _ =>
+          Random.nextInt(pop.p.size)
       }
       numEvalBudget = budget
       active = true

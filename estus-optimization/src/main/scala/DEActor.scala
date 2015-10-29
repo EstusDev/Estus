@@ -29,7 +29,7 @@ class DEActor (
   private val config = request.solverConfig.asInstanceOf[MOSConfig]
   private val mosRouter = context.system.actorOf(
     RoundRobinPool(nRouter).props(Props[MOSActor]))
-  private var (numEval, numEvalBudget, numIter, nCorpse) = (0, 0, 0, nRouter)
+  private var (numEval, numEvalBudget, numIter, nExplore, nCorpse) = (0, 0, 0, 0, nRouter)
   private var (flagExplore, active) = (false, false)
   private var (fMu, crMu, rhoMu) = (0.5, 0.5, 0.0)
 
@@ -48,10 +48,11 @@ class DEActor (
       if (key._1) { // pop
         self ! Select(key._2, node)
       } else { // popExplore
-        if (popExplore.size < config.NP)
-          popExplore.add(node)
+        if (nExplore < config.NP)
+          popExplore.update(nExplore, node)
         else
           popExplore.replaceWorst(node, config.constStrategy)
+        nExplore += 1
       }
 
     case Select(i, node) =>
@@ -111,7 +112,7 @@ class DEActor (
           case _ =>
         }
         if (Random.nextDouble < config.Er && !trace.converged) {
-          popExplore.empty
+          nExplore = 0
           flagExplore = true
         }
       }
@@ -143,7 +144,7 @@ class DEActor (
       stepSeq.seq.last.numEvalDE = numEval
       ls1Actor ! StartLS1(stepSeq.seq.last.Pi().last)
 
-    case GimmeWork if flagExplore && popExplore.size < config.NP  =>
+    case GimmeWork if flagExplore && nExplore < config.NP  =>
       val senderActor = sender()
       // Use Nelder-Mead method to explore population space
       // Construct a mid-point from a simplex - bestNode, goodNode and worstNode
@@ -174,7 +175,8 @@ class DEActor (
       exploreNode.rho = Some(rho)
       // Evaluate this exploreNode, add to the popExplore for future comparison
       if (exploreNode.constVal > 0) {
-        popExplore.add(exploreNode)
+        popExplore.update(nExplore, exploreNode)
+        nExplore += 1
         senderActor ! WorkAvailable(self)
       } else {
         val key = (false, -1)
@@ -184,9 +186,7 @@ class DEActor (
     case GimmeWork if flagExplore =>
       val senderActor = sender()
       // Explore finishes, now sort the popUnion and take the bests
-      val popTmp = pop
-      val popUnion = popTmp.merge(popExplore)
-      popTmp.empty
+      val popUnion = pop.merge(popExplore)
       val wfv = popUnion.worstFeasibleVal.getOrElse(0.0)
       (popUnion.p.toSeq.sortBy(n => n._2.objFnVal match {
         case Some(v) =>
@@ -196,10 +196,8 @@ class DEActor (
       }).map(_._2) take config.NP).zipWithIndex.foreach(x => {
         if (x._2 == 0)
           stepSeq.seq.last.bestNode = x._1
-        popTmp.add(x._1)
+        pop.update(x._2, x._1)
       })
-      pop.p = popTmp.p
-      pop.keys = popTmp.keys
       // Update rho using success trails from the explore phrase
       val rhoVec = pop.p.values.flatten(_.rho)
       if (rhoVec.nonEmpty)

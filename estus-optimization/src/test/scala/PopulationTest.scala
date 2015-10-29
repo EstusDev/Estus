@@ -41,18 +41,6 @@ class PopulationTest extends FlatSpec with Matchers {
   }
 
   it should
-    "be able to get a node in the correct order" in {
-    val node1 = PopulationNode(List(-1.0, -1.0), request)
-    val node2 = PopulationNode(List(1.0, 1.0), request)
-    val pop = Population(10)
-    pop.add(node2)
-    pop.add(node1)
-    pop.size should be (2)
-    pop.get(1) should be (Some(node2))
-    pop.get(0) should be (Some(node1))
-  }
-
-  it should
     "be able to update a node" in {
     val node1 = PopulationNode(List(-1.0, -1.0), request)
     val node2 = PopulationNode(List(1.0, 1.0), request)
@@ -60,7 +48,7 @@ class PopulationTest extends FlatSpec with Matchers {
     pop.add(node2)
     pop.add(node1)
     pop.size should be (2)
-    pop.get(1) should be (Some(node2))
+    pop.update(1, node2)
     pop.update(1, node1)
     pop.get(1) should be (Some(node1))
   }
@@ -113,8 +101,6 @@ class PopulationTest extends FlatSpec with Matchers {
     pop2.add(node2)
     val popU = pop1.merge(pop2)
     popU.size should be (4)
-    popU.keys should be (pop1.keys ++ pop2.keys)
-    popU.get(3).get.param should be (List(1.0, 1.0))
   }
 
 }
