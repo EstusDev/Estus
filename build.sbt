@@ -12,6 +12,6 @@ lazy val estusOptimization = (project in file("estus-optimization")).settings(co
 lazy val estusDistribution = (project in file("estus-distribution")).settings(commonSettings: _*)
 
 // Estus Statistics
-// lazy val estusStatistics = (project in file("estus-statistics")).settings(commonSettings: _*)
+lazy val estusStatistics = (project in file("estus-statistics")).settings(commonSettings: _*)
 
 lazy val estus = (project in file(".")).aggregate(estusOptimization)
