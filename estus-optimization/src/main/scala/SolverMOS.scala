@@ -51,6 +51,8 @@ class SolverMOS (
   def receive = {
 
     case Start =>
+      if (config.logTrace)
+        log.info(s"SolverMOS Started.")
       if (timeout.isFinite()) {
         val fdur = FiniteDuration(
           timeout.toMillis,
@@ -61,6 +63,8 @@ class SolverMOS (
 
     case AddNumEval(num) =>
       numEval += num
+      if (numEval >= config.maxNumEval)
+        self ! NotConverged
 
     case NextStep if numEval < config.maxNumEval =>
       val senderActor = sender()
@@ -94,7 +98,7 @@ class SolverMOS (
       context stop self
       context become shuttingDown
 
-    case NextStep => // Not Converged
+    case NextStep | NotConverged => // Not Converged
       converged = false
       status = NotConverged.toString()
       context stop self
@@ -139,7 +143,6 @@ class SolverMOS (
     if (config.logTrace)
       log.info(solution.toString)
     journal.updateRow(key, solution)
-
   }
 
 }
