@@ -16,7 +16,7 @@ norm.dnorm(0.3, 0.0, 1.0, true)
 norm.dnorm(List(0.3, 0.4, 0.5), 0.0, 1.0, true)
 ```
 ### Installation
-```scala
+```shell
 git clone https://github.com/EstusDev/Estus
 cd Estus/estus-distribution
 sbt estusDistribution/update
