@@ -2,7 +2,7 @@
 A highly scalable, asynchronous, non-blocking scientific library
 
 ### estus-optimization
-A global numerical optimization algorithm that handles large dimensional (1000 dimensions +) problems
+A global numerical optimization algorithm that handles large dimensional problems
 
 ### estus-distribution
 Probablity distribution functions that are inspired by R (dpqr)
