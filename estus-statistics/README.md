@@ -3,7 +3,9 @@
 Basic sample statistics functions which are inspired by R.
 
 Statistical Moments - mean, variance, stddev, skewness, kurtosis
+
 Descriptive Statistics - mode, median, quantile, range, rank
+
 Counting - countZeros, countNAs, countX
 
 ## Usage
