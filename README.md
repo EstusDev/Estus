@@ -1,5 +1,5 @@
 # Estus
-A highly scalable, asynchronous, non-blocking scientific library
+A highly scalable, asynchronous, non-blocking scientific library in written in Scala
 
 ### estus-optimization
 A global numerical optimization algorithm that handles large dimensional problems
