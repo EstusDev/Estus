@@ -3,8 +3,11 @@
 Probability distribution functions which are inspired by R.
 
 d - density
+
 p - probability (cumulative)
+
 q - quantile
+
 r - random number generation
 
 ## Usage
