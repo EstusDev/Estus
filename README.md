@@ -5,7 +5,7 @@ A highly scalable, asynchronous, non-blocking scientific library in written in S
 A global numerical optimization algorithm that handles large dimensional problems
 
 ### estus-distribution
-Probablity distribution functions that are inspired by R (dpqr)
+Probability distribution functions that are inspired by R (dpqr)
 
 ### estus-statistics
 Basic sample statistics
