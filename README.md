@@ -9,6 +9,3 @@ Probability distribution functions that are inspired by R (dpqr)
 
 ### estus-statistics
 Basic sample statistics
-
-# Contributors
-Shouheng Yi - shouhengyi@gmail.com
